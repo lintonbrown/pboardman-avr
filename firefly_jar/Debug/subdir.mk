@@ -4,12 +4,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../FireflyJar.c \
 ../firefly_jar.c 
 
 OBJS += \
+./FireflyJar.o \
 ./firefly_jar.o 
 
 C_DEPS += \
+./FireflyJar.d \
 ./firefly_jar.d 
 
 

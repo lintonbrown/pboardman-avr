@@ -3,15 +3,15 @@ firefly_jar.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         00000398  00000000  00000000  00000094  2**1
+  0 .text         00000276  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000010  00800060  00000398  0000042c  2**0
+  1 .data         00000010  00800060  00000276  0000030a  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .bss          00000019  00800070  00800070  0000043c  2**0
+  2 .bss          00000002  00800070  00800070  0000031a  2**0
                   ALLOC
-  3 .stab         0000054c  00000000  00000000  0000043c  2**2
+  3 .stab         000005ac  00000000  00000000  0000031c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  4 .stabstr      0000085e  00000000  00000000  00000988  2**0
+  4 .stabstr      0000078a  00000000  00000000  000008c8  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -38,8 +38,8 @@ Disassembly of section .text:
   1c:	10 e0       	ldi	r17, 0x00	; 0
   1e:	a0 e6       	ldi	r26, 0x60	; 96
   20:	b0 e0       	ldi	r27, 0x00	; 0
-  22:	e8 e9       	ldi	r30, 0x98	; 152
-  24:	f3 e0       	ldi	r31, 0x03	; 3
+  22:	e6 e7       	ldi	r30, 0x76	; 118
+  24:	f2 e0       	ldi	r31, 0x02	; 2
   26:	02 c0       	rjmp	.+4      	; 0x2c <.do_copy_data_start>
 
 00000028 <.do_copy_data_loop>:
@@ -61,572 +61,438 @@ Disassembly of section .text:
   3a:	1d 92       	st	X+, r1
 
 0000003c <.do_clear_bss_start>:
-  3c:	a9 38       	cpi	r26, 0x89	; 137
+  3c:	a2 37       	cpi	r26, 0x72	; 114
   3e:	b1 07       	cpc	r27, r17
   40:	e1 f7       	brne	.-8      	; 0x3a <.do_clear_bss_loop>
-  42:	8b d0       	rcall	.+278    	; 0x15a <main>
-  44:	a7 c1       	rjmp	.+846    	; 0x394 <_exit>
+  42:	ff d0       	rcall	.+510    	; 0x242 <main>
+  44:	16 c1       	rjmp	.+556    	; 0x272 <_exit>
 
 00000046 <__bad_interrupt>:
   46:	dc cf       	rjmp	.-72     	; 0x0 <__vectors>
 
-00000048 <ledCheck>:
-#define PULSE_ON 1
-#define ON 2
-#define PULSE_OFF 255
+00000048 <getTime>:
 
-void ledCheck(int led, unsigned char value)
+//TODO return a random time interval from 1 to 255
+int getTime()
 {
-  48:	ac 01       	movw	r20, r24
-	if (value > values[led]){
-  4a:	70 e0       	ldi	r23, 0x00	; 0
-  4c:	fc 01       	movw	r30, r24
-  4e:	ee 0f       	add	r30, r30
-  50:	ff 1f       	adc	r31, r31
-  52:	e0 59       	subi	r30, 0x90	; 144
-  54:	ff 4f       	sbci	r31, 0xFF	; 255
-  56:	80 81       	ld	r24, Z
-  58:	91 81       	ldd	r25, Z+1	; 0x01
-  5a:	86 17       	cp	r24, r22
-  5c:	97 07       	cpc	r25, r23
-  5e:	64 f4       	brge	.+24     	; 0x78 <ledCheck+0x30>
-		PORTB &=~ _BV(led);
-  60:	28 b3       	in	r18, 0x18	; 24
-  62:	81 e0       	ldi	r24, 0x01	; 1
-  64:	90 e0       	ldi	r25, 0x00	; 0
-  66:	02 c0       	rjmp	.+4      	; 0x6c <ledCheck+0x24>
-  68:	88 0f       	add	r24, r24
-  6a:	99 1f       	adc	r25, r25
-  6c:	4a 95       	dec	r20
-  6e:	e2 f7       	brpl	.-8      	; 0x68 <ledCheck+0x20>
-  70:	80 95       	com	r24
-  72:	82 23       	and	r24, r18
-  74:	88 bb       	out	0x18, r24	; 24
-  76:	08 95       	ret
-	}else{
-		PORTB |= _BV(led);
-  78:	28 b3       	in	r18, 0x18	; 24
-  7a:	81 e0       	ldi	r24, 0x01	; 1
-  7c:	90 e0       	ldi	r25, 0x00	; 0
-  7e:	02 c0       	rjmp	.+4      	; 0x84 <ledCheck+0x3c>
-  80:	88 0f       	add	r24, r24
-  82:	99 1f       	adc	r25, r25
-  84:	4a 95       	dec	r20
-  86:	e2 f7       	brpl	.-8      	; 0x80 <ledCheck+0x38>
-  88:	28 2b       	or	r18, r24
-  8a:	28 bb       	out	0x18, r18	; 24
-  8c:	08 95       	ret
-
-0000008e <updateState>:
-	}
+	return 50;
 }
+  48:	82 e3       	ldi	r24, 0x32	; 50
+  4a:	90 e0       	ldi	r25, 0x00	; 0
+  4c:	08 95       	ret
 
-void updateState()
-{
-  8e:	ef 92       	push	r14
-  90:	ff 92       	push	r15
-  92:	0f 93       	push	r16
-  94:	1f 93       	push	r17
-  96:	cf 93       	push	r28
-  98:	df 93       	push	r29
-	for(led = 1; led < 5; led++)
-  9a:	81 e0       	ldi	r24, 0x01	; 1
-  9c:	80 93 88 00 	sts	0x0088, r24
-					states[led] = PULSE_ON;
-				break;
-			case PULSE_ON:
-				if(++values[led] == V_MAX)
-				{
-					states[led] = ON;
-  a0:	32 e0       	ldi	r19, 0x02	; 2
-  a2:	e3 2e       	mov	r14, r19
-  a4:	f1 2c       	mov	r15, r1
-				}
-				break;
-			case ON:
-				states[led]++;
-  a6:	03 e0       	ldi	r16, 0x03	; 3
-  a8:	10 e0       	ldi	r17, 0x00	; 0
-		switch(states[led])
-		{
-			case OFF:
-				//RAND_MAX is defined as 0x7FFF
-				if(random() > 0x6FFF)
-					states[led] = PULSE_ON;
-  aa:	c1 e0       	ldi	r28, 0x01	; 1
-  ac:	d0 e0       	ldi	r29, 0x00	; 0
-  ae:	49 c0       	rjmp	.+146    	; 0x142 <__stack+0xa3>
+0000004e <pulseLeds>:
 
-void updateState()
+void pulseLeds()
 {
-	for(led = 1; led < 5; led++)
+	PORTB |= ALL_LEDS;
+  4e:	88 b3       	in	r24, 0x18	; 24
+  50:	8f 61       	ori	r24, 0x1F	; 31
+  52:	88 bb       	out	0x18, r24	; 24
+  54:	80 91 70 00 	lds	r24, 0x0070
+  58:	40 e0       	ldi	r20, 0x00	; 0
 	{
-		switch(states[led])
-  b0:	f0 e0       	ldi	r31, 0x00	; 0
-  b2:	ee 0f       	add	r30, r30
-  b4:	ff 1f       	adc	r31, r31
-  b6:	df 01       	movw	r26, r30
-  b8:	a4 58       	subi	r26, 0x84	; 132
-  ba:	bf 4f       	sbci	r27, 0xFF	; 255
-  bc:	8d 91       	ld	r24, X+
-  be:	9c 91       	ld	r25, X
-  c0:	11 97       	sbiw	r26, 0x01	; 1
-  c2:	81 30       	cpi	r24, 0x01	; 1
-  c4:	91 05       	cpc	r25, r1
-  c6:	e9 f0       	breq	.+58     	; 0x102 <__stack+0x63>
-  c8:	82 30       	cpi	r24, 0x02	; 2
-  ca:	91 05       	cpc	r25, r1
-  cc:	1c f4       	brge	.+6      	; 0xd4 <__stack+0x35>
-  ce:	89 2b       	or	r24, r25
-  d0:	41 f0       	breq	.+16     	; 0xe2 <__stack+0x43>
-  d2:	32 c0       	rjmp	.+100    	; 0x138 <__stack+0x99>
-  d4:	82 30       	cpi	r24, 0x02	; 2
-  d6:	91 05       	cpc	r25, r1
-  d8:	09 f1       	breq	.+66     	; 0x11c <__stack+0x7d>
-  da:	8f 3f       	cpi	r24, 0xFF	; 255
-  dc:	91 05       	cpc	r25, r1
-  de:	61 f5       	brne	.+88     	; 0x138 <__stack+0x99>
-  e0:	20 c0       	rjmp	.+64     	; 0x122 <__stack+0x83>
+		for(j = 0; j < N_LEDS; j++)
 		{
-			case OFF:
-				//RAND_MAX is defined as 0x7FFF
-				if(random() > 0x6FFF)
-  e2:	be d0       	rcall	.+380    	; 0x260 <random>
-  e4:	60 50       	subi	r22, 0x00	; 0
-  e6:	70 47       	sbci	r23, 0x70	; 112
-  e8:	80 40       	sbci	r24, 0x00	; 0
-  ea:	90 40       	sbci	r25, 0x00	; 0
-  ec:	2c f1       	brlt	.+74     	; 0x138 <__stack+0x99>
-					states[led] = PULSE_ON;
-  ee:	e0 91 88 00 	lds	r30, 0x0088
-  f2:	f0 e0       	ldi	r31, 0x00	; 0
-  f4:	ee 0f       	add	r30, r30
-  f6:	ff 1f       	adc	r31, r31
-  f8:	e4 58       	subi	r30, 0x84	; 132
-  fa:	ff 4f       	sbci	r31, 0xFF	; 255
-  fc:	d1 83       	std	Z+1, r29	; 0x01
-  fe:	c0 83       	st	Z, r28
- 100:	1b c0       	rjmp	.+54     	; 0x138 <__stack+0x99>
-				break;
-			case PULSE_ON:
-				if(++values[led] == V_MAX)
- 102:	e0 59       	subi	r30, 0x90	; 144
- 104:	ff 4f       	sbci	r31, 0xFF	; 255
- 106:	80 81       	ld	r24, Z
- 108:	91 81       	ldd	r25, Z+1	; 0x01
- 10a:	01 96       	adiw	r24, 0x01	; 1
- 10c:	91 83       	std	Z+1, r25	; 0x01
- 10e:	80 83       	st	Z, r24
- 110:	8f 3f       	cpi	r24, 0xFF	; 255
- 112:	91 05       	cpc	r25, r1
- 114:	89 f4       	brne	.+34     	; 0x138 <__stack+0x99>
-				{
-					states[led] = ON;
- 116:	ed 92       	st	X+, r14
- 118:	fc 92       	st	X, r15
- 11a:	0e c0       	rjmp	.+28     	; 0x138 <__stack+0x99>
-				}
-				break;
-			case ON:
-				states[led]++;
- 11c:	0d 93       	st	X+, r16
- 11e:	1c 93       	st	X, r17
- 120:	0b c0       	rjmp	.+22     	; 0x138 <__stack+0x99>
-				break;
-			case PULSE_OFF:
-				if(--values[led] == 0)
- 122:	e0 59       	subi	r30, 0x90	; 144
- 124:	ff 4f       	sbci	r31, 0xFF	; 255
- 126:	80 81       	ld	r24, Z
- 128:	91 81       	ldd	r25, Z+1	; 0x01
- 12a:	01 97       	sbiw	r24, 0x01	; 1
- 12c:	91 83       	std	Z+1, r25	; 0x01
- 12e:	80 83       	st	Z, r24
- 130:	89 2b       	or	r24, r25
- 132:	11 f4       	brne	.+4      	; 0x138 <__stack+0x99>
-				{
-					states[led] = OFF;
- 134:	1d 92       	st	X+, r1
- 136:	1c 92       	st	X, r1
-	}
+			if(led_data[j].mBrightness <= i)
+			{
+				PORTB &=~ (1 << led_data[j].mPin);
+  5a:	a1 e0       	ldi	r26, 0x01	; 1
+  5c:	b0 e0       	ldi	r27, 0x00	; 0
+  5e:	23 c0       	rjmp	.+70     	; 0xa6 <__stack+0x7>
+	PORTB |= ALL_LEDS;
+	for(i = 0; i < 255; i++)
+	{
+		for(j = 0; j < N_LEDS; j++)
+		{
+			if(led_data[j].mBrightness <= i)
+  60:	83 2f       	mov	r24, r19
+  62:	90 e0       	ldi	r25, 0x00	; 0
+  64:	63 e0       	ldi	r22, 0x03	; 3
+  66:	70 e0       	ldi	r23, 0x00	; 0
+  68:	f2 d0       	rcall	.+484    	; 0x24e <__mulhi3>
+  6a:	fc 01       	movw	r30, r24
+  6c:	e0 5a       	subi	r30, 0xA0	; 160
+  6e:	ff 4f       	sbci	r31, 0xFF	; 255
+  70:	80 81       	ld	r24, Z
+  72:	48 17       	cp	r20, r24
+  74:	98 f0       	brcs	.+38     	; 0x9c <pulseLeds+0x4e>
+			{
+				PORTB &=~ (1 << led_data[j].mPin);
+  76:	28 b3       	in	r18, 0x18	; 24
+  78:	83 2f       	mov	r24, r19
+  7a:	90 e0       	ldi	r25, 0x00	; 0
+  7c:	63 e0       	ldi	r22, 0x03	; 3
+  7e:	70 e0       	ldi	r23, 0x00	; 0
+  80:	e6 d0       	rcall	.+460    	; 0x24e <__mulhi3>
+  82:	fc 01       	movw	r30, r24
+  84:	e0 5a       	subi	r30, 0xA0	; 160
+  86:	ff 4f       	sbci	r31, 0xFF	; 255
+  88:	cd 01       	movw	r24, r26
+  8a:	02 80       	ldd	r0, Z+2	; 0x02
+  8c:	02 c0       	rjmp	.+4      	; 0x92 <pulseLeds+0x44>
+  8e:	88 0f       	add	r24, r24
+  90:	99 1f       	adc	r25, r25
+  92:	0a 94       	dec	r0
+  94:	e2 f7       	brpl	.-8      	; 0x8e <pulseLeds+0x40>
+  96:	80 95       	com	r24
+  98:	82 23       	and	r24, r18
+  9a:	88 bb       	out	0x18, r24	; 24
+  9c:	3f 5f       	subi	r19, 0xFF	; 255
+void pulseLeds()
+{
+	PORTB |= ALL_LEDS;
+	for(i = 0; i < 255; i++)
+	{
+		for(j = 0; j < N_LEDS; j++)
+  9e:	35 30       	cpi	r19, 0x05	; 5
+  a0:	f9 f6       	brne	.-66     	; 0x60 <pulseLeds+0x12>
+  a2:	4f 5f       	subi	r20, 0xFF	; 255
+  a4:	85 e0       	ldi	r24, 0x05	; 5
 }
 
-void updateState()
+void pulseLeds()
 {
-	for(led = 1; led < 5; led++)
- 138:	80 91 88 00 	lds	r24, 0x0088
- 13c:	8f 5f       	subi	r24, 0xFF	; 255
- 13e:	80 93 88 00 	sts	0x0088, r24
- 142:	e0 91 88 00 	lds	r30, 0x0088
- 146:	e5 30       	cpi	r30, 0x05	; 5
- 148:	08 f4       	brcc	.+2      	; 0x14c <__stack+0xad>
- 14a:	b2 cf       	rjmp	.-156    	; 0xb0 <__stack+0x11>
-					states[led] = OFF;
+	PORTB |= ALL_LEDS;
+	for(i = 0; i < 255; i++)
+  a6:	4f 3f       	cpi	r20, 0xFF	; 255
+  a8:	11 f0       	breq	.+4      	; 0xae <__stack+0xf>
+  aa:	30 e0       	ldi	r19, 0x00	; 0
+  ac:	f8 cf       	rjmp	.-16     	; 0x9e <pulseLeds+0x50>
+  ae:	80 93 70 00 	sts	0x0070, r24
+  b2:	40 93 71 00 	sts	0x0071, r20
+			{
+				PORTB &=~ (1 << led_data[j].mPin);
+			}
+		}
+	}
+	PORTB &=~ ALL_LEDS;
+  b6:	c0 98       	cbi	0x18, 0	; 24
+}
+  b8:	08 95       	ret
+
+000000ba <updateLedState>:
+
+void updateLedState()
+{
+  ba:	30 e0       	ldi	r19, 0x00	; 0
+
+					//specify the "up" direction for pulsing
+					led_data[i].mPin |= (1 << PULSE_DIRECTION);
+
+					//set the ON time
+					led_data[i].mTime = getTime();
+  bc:	42 e3       	ldi	r20, 0x32	; 50
+  be:	b7 c0       	rjmp	.+366    	; 0x22e <updateLedState+0x174>
+
+void updateLedState()
+{
+	for(i = 0; i < N_LEDS; i++)
+	{
+		switch(led_data[i].mBrightness)
+  c0:	83 2f       	mov	r24, r19
+  c2:	90 e0       	ldi	r25, 0x00	; 0
+  c4:	63 e0       	ldi	r22, 0x03	; 3
+  c6:	70 e0       	ldi	r23, 0x00	; 0
+  c8:	c2 d0       	rcall	.+388    	; 0x24e <__mulhi3>
+  ca:	fc 01       	movw	r30, r24
+  cc:	e0 5a       	subi	r30, 0xA0	; 160
+  ce:	ff 4f       	sbci	r31, 0xFF	; 255
+  d0:	20 81       	ld	r18, Z
+  d2:	22 23       	and	r18, r18
+  d4:	09 f4       	brne	.+2      	; 0xd8 <updateLedState+0x1e>
+  d6:	41 c0       	rjmp	.+130    	; 0x15a <updateLedState+0xa0>
+  d8:	28 3c       	cpi	r18, 0xC8	; 200
+  da:	09 f0       	breq	.+2      	; 0xde <updateLedState+0x24>
+  dc:	7c c0       	rjmp	.+248    	; 0x1d6 <updateLedState+0x11c>
+		{
+			case MAX://led is on
+				if(--led_data[i].mTime == 0)
+  de:	83 2f       	mov	r24, r19
+  e0:	90 e0       	ldi	r25, 0x00	; 0
+  e2:	63 e0       	ldi	r22, 0x03	; 3
+  e4:	70 e0       	ldi	r23, 0x00	; 0
+  e6:	b3 d0       	rcall	.+358    	; 0x24e <__mulhi3>
+  e8:	fc 01       	movw	r30, r24
+  ea:	e0 5a       	subi	r30, 0xA0	; 160
+  ec:	ff 4f       	sbci	r31, 0xFF	; 255
+  ee:	21 81       	ldd	r18, Z+1	; 0x01
+  f0:	21 50       	subi	r18, 0x01	; 1
+  f2:	83 2f       	mov	r24, r19
+  f4:	90 e0       	ldi	r25, 0x00	; 0
+  f6:	63 e0       	ldi	r22, 0x03	; 3
+  f8:	70 e0       	ldi	r23, 0x00	; 0
+  fa:	a9 d0       	rcall	.+338    	; 0x24e <__mulhi3>
+  fc:	fc 01       	movw	r30, r24
+  fe:	e0 5a       	subi	r30, 0xA0	; 160
+ 100:	ff 4f       	sbci	r31, 0xFF	; 255
+ 102:	21 83       	std	Z+1, r18	; 0x01
+ 104:	22 23       	and	r18, r18
+ 106:	09 f0       	breq	.+2      	; 0x10a <updateLedState+0x50>
+ 108:	91 c0       	rjmp	.+290    	; 0x22c <updateLedState+0x172>
+				{
+					//decrement the brightness, this puts the LED in a
+					//pulse state
+					led_data[i].mBrightness--;
+ 10a:	83 2f       	mov	r24, r19
+ 10c:	90 e0       	ldi	r25, 0x00	; 0
+ 10e:	63 e0       	ldi	r22, 0x03	; 3
+ 110:	70 e0       	ldi	r23, 0x00	; 0
+ 112:	9d d0       	rcall	.+314    	; 0x24e <__mulhi3>
+ 114:	dc 01       	movw	r26, r24
+ 116:	a0 5a       	subi	r26, 0xA0	; 160
+ 118:	bf 4f       	sbci	r27, 0xFF	; 255
+ 11a:	83 2f       	mov	r24, r19
+ 11c:	90 e0       	ldi	r25, 0x00	; 0
+ 11e:	63 e0       	ldi	r22, 0x03	; 3
+ 120:	70 e0       	ldi	r23, 0x00	; 0
+ 122:	95 d0       	rcall	.+298    	; 0x24e <__mulhi3>
+ 124:	fc 01       	movw	r30, r24
+ 126:	e0 5a       	subi	r30, 0xA0	; 160
+ 128:	ff 4f       	sbci	r31, 0xFF	; 255
+ 12a:	80 81       	ld	r24, Z
+ 12c:	81 50       	subi	r24, 0x01	; 1
+ 12e:	8c 93       	st	X, r24
+
+					//specify the "down" direction for pulsing
+					led_data[i].mPin &=~ (1 << PULSE_DIRECTION);
+ 130:	83 2f       	mov	r24, r19
+ 132:	90 e0       	ldi	r25, 0x00	; 0
+ 134:	63 e0       	ldi	r22, 0x03	; 3
+ 136:	70 e0       	ldi	r23, 0x00	; 0
+ 138:	8a d0       	rcall	.+276    	; 0x24e <__mulhi3>
+ 13a:	dc 01       	movw	r26, r24
+ 13c:	a0 5a       	subi	r26, 0xA0	; 160
+ 13e:	bf 4f       	sbci	r27, 0xFF	; 255
+ 140:	83 2f       	mov	r24, r19
+ 142:	90 e0       	ldi	r25, 0x00	; 0
+ 144:	63 e0       	ldi	r22, 0x03	; 3
+ 146:	70 e0       	ldi	r23, 0x00	; 0
+ 148:	82 d0       	rcall	.+260    	; 0x24e <__mulhi3>
+ 14a:	fc 01       	movw	r30, r24
+ 14c:	e0 5a       	subi	r30, 0xA0	; 160
+ 14e:	ff 4f       	sbci	r31, 0xFF	; 255
+ 150:	82 81       	ldd	r24, Z+2	; 0x02
+ 152:	8f 77       	andi	r24, 0x7F	; 127
+ 154:	12 96       	adiw	r26, 0x02	; 2
+ 156:	8c 93       	st	X, r24
+ 158:	69 c0       	rjmp	.+210    	; 0x22c <updateLedState+0x172>
+				}
+				break;
+			case 0://led is off
+				if(--led_data[i].mTime == 0)
+ 15a:	83 2f       	mov	r24, r19
+ 15c:	90 e0       	ldi	r25, 0x00	; 0
+ 15e:	63 e0       	ldi	r22, 0x03	; 3
+ 160:	70 e0       	ldi	r23, 0x00	; 0
+ 162:	75 d0       	rcall	.+234    	; 0x24e <__mulhi3>
+ 164:	fc 01       	movw	r30, r24
+ 166:	e0 5a       	subi	r30, 0xA0	; 160
+ 168:	ff 4f       	sbci	r31, 0xFF	; 255
+ 16a:	21 81       	ldd	r18, Z+1	; 0x01
+ 16c:	21 50       	subi	r18, 0x01	; 1
+ 16e:	83 2f       	mov	r24, r19
+ 170:	90 e0       	ldi	r25, 0x00	; 0
+ 172:	63 e0       	ldi	r22, 0x03	; 3
+ 174:	70 e0       	ldi	r23, 0x00	; 0
+ 176:	6b d0       	rcall	.+214    	; 0x24e <__mulhi3>
+ 178:	fc 01       	movw	r30, r24
+ 17a:	e0 5a       	subi	r30, 0xA0	; 160
+ 17c:	ff 4f       	sbci	r31, 0xFF	; 255
+ 17e:	21 83       	std	Z+1, r18	; 0x01
+ 180:	22 23       	and	r18, r18
+ 182:	09 f0       	breq	.+2      	; 0x186 <updateLedState+0xcc>
+ 184:	53 c0       	rjmp	.+166    	; 0x22c <updateLedState+0x172>
+				{
+					//increment the brightness,this puts the LED in
+					//a pulse state
+					led_data[i].mBrightness++;
+ 186:	83 2f       	mov	r24, r19
+ 188:	90 e0       	ldi	r25, 0x00	; 0
+ 18a:	63 e0       	ldi	r22, 0x03	; 3
+ 18c:	70 e0       	ldi	r23, 0x00	; 0
+ 18e:	5f d0       	rcall	.+190    	; 0x24e <__mulhi3>
+ 190:	dc 01       	movw	r26, r24
+ 192:	a0 5a       	subi	r26, 0xA0	; 160
+ 194:	bf 4f       	sbci	r27, 0xFF	; 255
+ 196:	83 2f       	mov	r24, r19
+ 198:	90 e0       	ldi	r25, 0x00	; 0
+ 19a:	63 e0       	ldi	r22, 0x03	; 3
+ 19c:	70 e0       	ldi	r23, 0x00	; 0
+ 19e:	57 d0       	rcall	.+174    	; 0x24e <__mulhi3>
+ 1a0:	fc 01       	movw	r30, r24
+ 1a2:	e0 5a       	subi	r30, 0xA0	; 160
+ 1a4:	ff 4f       	sbci	r31, 0xFF	; 255
+ 1a6:	80 81       	ld	r24, Z
+ 1a8:	8f 5f       	subi	r24, 0xFF	; 255
+ 1aa:	8c 93       	st	X, r24
+
+					//specify the "up" direction for pulsing
+					led_data[i].mPin |= (1 << PULSE_DIRECTION);
+ 1ac:	83 2f       	mov	r24, r19
+ 1ae:	90 e0       	ldi	r25, 0x00	; 0
+ 1b0:	63 e0       	ldi	r22, 0x03	; 3
+ 1b2:	70 e0       	ldi	r23, 0x00	; 0
+ 1b4:	4c d0       	rcall	.+152    	; 0x24e <__mulhi3>
+ 1b6:	dc 01       	movw	r26, r24
+ 1b8:	a0 5a       	subi	r26, 0xA0	; 160
+ 1ba:	bf 4f       	sbci	r27, 0xFF	; 255
+ 1bc:	83 2f       	mov	r24, r19
+ 1be:	90 e0       	ldi	r25, 0x00	; 0
+ 1c0:	63 e0       	ldi	r22, 0x03	; 3
+ 1c2:	70 e0       	ldi	r23, 0x00	; 0
+ 1c4:	44 d0       	rcall	.+136    	; 0x24e <__mulhi3>
+ 1c6:	fc 01       	movw	r30, r24
+ 1c8:	e0 5a       	subi	r30, 0xA0	; 160
+ 1ca:	ff 4f       	sbci	r31, 0xFF	; 255
+ 1cc:	82 81       	ldd	r24, Z+2	; 0x02
+ 1ce:	80 68       	ori	r24, 0x80	; 128
+ 1d0:	12 96       	adiw	r26, 0x02	; 2
+ 1d2:	8c 93       	st	X, r24
+ 1d4:	22 c0       	rjmp	.+68     	; 0x21a <updateLedState+0x160>
+					//set the ON time
+					led_data[i].mTime = getTime();
+				}
+				break;
+			default: //pulse state
+				if(led_data[i].mPin & (1 << PULSE_DIRECTION))
+ 1d6:	83 2f       	mov	r24, r19
+ 1d8:	90 e0       	ldi	r25, 0x00	; 0
+ 1da:	63 e0       	ldi	r22, 0x03	; 3
+ 1dc:	70 e0       	ldi	r23, 0x00	; 0
+ 1de:	37 d0       	rcall	.+110    	; 0x24e <__mulhi3>
+ 1e0:	fc 01       	movw	r30, r24
+ 1e2:	e0 5a       	subi	r30, 0xA0	; 160
+ 1e4:	ff 4f       	sbci	r31, 0xFF	; 255
+ 1e6:	82 81       	ldd	r24, Z+2	; 0x02
+ 1e8:	87 ff       	sbrs	r24, 7
+ 1ea:	0b c0       	rjmp	.+22     	; 0x202 <updateLedState+0x148>
+				{
+					led_data[i].mBrightness++;
+ 1ec:	83 2f       	mov	r24, r19
+ 1ee:	90 e0       	ldi	r25, 0x00	; 0
+ 1f0:	63 e0       	ldi	r22, 0x03	; 3
+ 1f2:	70 e0       	ldi	r23, 0x00	; 0
+ 1f4:	2c d0       	rcall	.+88     	; 0x24e <__mulhi3>
+ 1f6:	fc 01       	movw	r30, r24
+ 1f8:	e0 5a       	subi	r30, 0xA0	; 160
+ 1fa:	ff 4f       	sbci	r31, 0xFF	; 255
+ 1fc:	2f 5f       	subi	r18, 0xFF	; 255
+ 1fe:	20 83       	st	Z, r18
+ 200:	15 c0       	rjmp	.+42     	; 0x22c <updateLedState+0x172>
+				}
+				else
+				{
+					if(--led_data[i].mBrightness == 0)
+ 202:	21 50       	subi	r18, 0x01	; 1
+ 204:	83 2f       	mov	r24, r19
+ 206:	90 e0       	ldi	r25, 0x00	; 0
+ 208:	63 e0       	ldi	r22, 0x03	; 3
+ 20a:	70 e0       	ldi	r23, 0x00	; 0
+ 20c:	20 d0       	rcall	.+64     	; 0x24e <__mulhi3>
+ 20e:	fc 01       	movw	r30, r24
+ 210:	e0 5a       	subi	r30, 0xA0	; 160
+ 212:	ff 4f       	sbci	r31, 0xFF	; 255
+ 214:	20 83       	st	Z, r18
+ 216:	22 23       	and	r18, r18
+ 218:	49 f4       	brne	.+18     	; 0x22c <updateLedState+0x172>
+					{
+						led_data[i].mTime = getTime();
+ 21a:	83 2f       	mov	r24, r19
+ 21c:	90 e0       	ldi	r25, 0x00	; 0
+ 21e:	63 e0       	ldi	r22, 0x03	; 3
+ 220:	70 e0       	ldi	r23, 0x00	; 0
+ 222:	15 d0       	rcall	.+42     	; 0x24e <__mulhi3>
+ 224:	fc 01       	movw	r30, r24
+ 226:	e0 5a       	subi	r30, 0xA0	; 160
+ 228:	ff 4f       	sbci	r31, 0xFF	; 255
+ 22a:	41 83       	std	Z+1, r20	; 0x01
+ 22c:	3f 5f       	subi	r19, 0xFF	; 255
+	PORTB &=~ ALL_LEDS;
+}
+
+void updateLedState()
+{
+	for(i = 0; i < N_LEDS; i++)
+ 22e:	35 30       	cpi	r19, 0x05	; 5
+ 230:	08 f4       	brcc	.+2      	; 0x234 <updateLedState+0x17a>
+ 232:	46 cf       	rjmp	.-372    	; 0xc0 <updateLedState+0x6>
+ 234:	30 93 71 00 	sts	0x0071, r19
+					}
 				}
 				break;
 		}
 	}
 }
- 14c:	df 91       	pop	r29
- 14e:	cf 91       	pop	r28
- 150:	1f 91       	pop	r17
- 152:	0f 91       	pop	r16
- 154:	ff 90       	pop	r15
- 156:	ef 90       	pop	r14
- 158:	08 95       	ret
+ 238:	08 95       	ret
 
-0000015a <main>:
+0000023a <setup>:
 
-int main(void){
- 15a:	1f 93       	push	r17
- 15c:	cf 93       	push	r28
- 15e:	df 93       	push	r29
-	unsigned char i=0;
-	unsigned char j=0;
-	//Set pins to output
-	DDRB |= _BV(DDB0);
- 160:	b8 9a       	sbi	0x17, 0	; 23
-	DDRB |= _BV(DDB1);
- 162:	b9 9a       	sbi	0x17, 1	; 23
-	DDRB |= _BV(DDB2);
- 164:	ba 9a       	sbi	0x17, 2	; 23
-	DDRB |= _BV(DDB3);
- 166:	bb 9a       	sbi	0x17, 3	; 23
-	DDRB |= _BV(DDB4);
- 168:	bc 9a       	sbi	0x17, 4	; 23
- 16a:	10 e0       	ldi	r17, 0x00	; 0
- 16c:	c1 e0       	ldi	r28, 0x01	; 1
- 16e:	d0 e0       	ldi	r29, 0x00	; 0
- 170:	e2 e7       	ldi	r30, 0x72	; 114
- 172:	f0 e0       	ldi	r31, 0x00	; 0
- 174:	41 e0       	ldi	r20, 0x01	; 1
- 176:	50 e0       	ldi	r21, 0x00	; 0
-#define ON 2
-#define PULSE_OFF 255
 
-void ledCheck(int led, unsigned char value)
-{
-	if (value > values[led]){
- 178:	61 2f       	mov	r22, r17
- 17a:	70 e0       	ldi	r23, 0x00	; 0
- 17c:	80 81       	ld	r24, Z
- 17e:	91 81       	ldd	r25, Z+1	; 0x01
- 180:	86 17       	cp	r24, r22
- 182:	97 07       	cpc	r25, r23
- 184:	64 f4       	brge	.+24     	; 0x19e <main+0x44>
-		PORTB &=~ _BV(led);
- 186:	28 b3       	in	r18, 0x18	; 24
- 188:	ce 01       	movw	r24, r28
- 18a:	04 2e       	mov	r0, r20
- 18c:	02 c0       	rjmp	.+4      	; 0x192 <main+0x38>
- 18e:	88 0f       	add	r24, r24
- 190:	99 1f       	adc	r25, r25
- 192:	0a 94       	dec	r0
- 194:	e2 f7       	brpl	.-8      	; 0x18e <main+0x34>
- 196:	80 95       	com	r24
- 198:	82 23       	and	r24, r18
- 19a:	88 bb       	out	0x18, r24	; 24
- 19c:	0a c0       	rjmp	.+20     	; 0x1b2 <main+0x58>
-	}else{
-		PORTB |= _BV(led);
- 19e:	28 b3       	in	r18, 0x18	; 24
- 1a0:	ce 01       	movw	r24, r28
- 1a2:	04 2e       	mov	r0, r20
- 1a4:	02 c0       	rjmp	.+4      	; 0x1aa <main+0x50>
- 1a6:	88 0f       	add	r24, r24
- 1a8:	99 1f       	adc	r25, r25
- 1aa:	0a 94       	dec	r0
- 1ac:	e2 f7       	brpl	.-8      	; 0x1a6 <main+0x4c>
- 1ae:	28 2b       	or	r18, r24
- 1b0:	28 bb       	out	0x18, r18	; 24
- 1b2:	32 96       	adiw	r30, 0x02	; 2
- 1b4:	4f 5f       	subi	r20, 0xFF	; 255
- 1b6:	5f 4f       	sbci	r21, 0xFF	; 255
-	DDRB |= _BV(DDB3);
-	DDRB |= _BV(DDB4);
+void setup()
+ {
+	//set all LED pins as outputs
+	DDRB |= ALL_LEDS;
+ 23a:	87 b3       	in	r24, 0x17	; 23
+ 23c:	8f 61       	ori	r24, 0x1F	; 31
+ 23e:	87 bb       	out	0x17, r24	; 23
+	// initialize Output Compare Register A to 0
+//	OCR0A = 250;
 
-	while (1) {
-		//Software PWM
-		for (j=1; j<5;j++)
- 1b8:	45 30       	cpi	r20, 0x05	; 5
- 1ba:	51 05       	cpc	r21, r1
- 1bc:	f9 f6       	brne	.-66     	; 0x17c <main+0x22>
-		{
-			ledCheck(j, i);
-		}
+	// Start timer at Fcpu / 8
+//	TCCR0B |= (1 << CS01);
+}
+ 240:	08 95       	ret
 
-		if (i==0){ //After blinking LEDs 255 times
- 1be:	11 23       	and	r17, r17
- 1c0:	09 f4       	brne	.+2      	; 0x1c4 <main+0x6a>
-			updateState();
- 1c2:	65 df       	rcall	.-310    	; 0x8e <updateState>
-		}
-		i++;
- 1c4:	1f 5f       	subi	r17, 0xFF	; 255
- 1c6:	d4 cf       	rjmp	.-88     	; 0x170 <main+0x16>
+00000242 <main>:
 
-000001c8 <do_random>:
- 1c8:	a0 e0       	ldi	r26, 0x00	; 0
- 1ca:	b0 e0       	ldi	r27, 0x00	; 0
- 1cc:	e9 ee       	ldi	r30, 0xE9	; 233
- 1ce:	f0 e0       	ldi	r31, 0x00	; 0
- 1d0:	90 c0       	rjmp	.+288    	; 0x2f2 <__prologue_saves__+0x10>
- 1d2:	ec 01       	movw	r28, r24
- 1d4:	a8 80       	ld	r10, Y
- 1d6:	b9 80       	ldd	r11, Y+1	; 0x01
- 1d8:	ca 80       	ldd	r12, Y+2	; 0x02
- 1da:	db 80       	ldd	r13, Y+3	; 0x03
- 1dc:	a1 14       	cp	r10, r1
- 1de:	b1 04       	cpc	r11, r1
- 1e0:	c1 04       	cpc	r12, r1
- 1e2:	d1 04       	cpc	r13, r1
- 1e4:	41 f4       	brne	.+16     	; 0x1f6 <do_random+0x2e>
- 1e6:	84 e2       	ldi	r24, 0x24	; 36
- 1e8:	a8 2e       	mov	r10, r24
- 1ea:	89 ed       	ldi	r24, 0xD9	; 217
- 1ec:	b8 2e       	mov	r11, r24
- 1ee:	8b e5       	ldi	r24, 0x5B	; 91
- 1f0:	c8 2e       	mov	r12, r24
- 1f2:	87 e0       	ldi	r24, 0x07	; 7
- 1f4:	d8 2e       	mov	r13, r24
- 1f6:	c6 01       	movw	r24, r12
- 1f8:	b5 01       	movw	r22, r10
- 1fa:	2d e1       	ldi	r18, 0x1D	; 29
- 1fc:	33 ef       	ldi	r19, 0xF3	; 243
- 1fe:	41 e0       	ldi	r20, 0x01	; 1
- 200:	50 e0       	ldi	r21, 0x00	; 0
- 202:	54 d0       	rcall	.+168    	; 0x2ac <__divmodsi4>
- 204:	27 ea       	ldi	r18, 0xA7	; 167
- 206:	31 e4       	ldi	r19, 0x41	; 65
- 208:	40 e0       	ldi	r20, 0x00	; 0
- 20a:	50 e0       	ldi	r21, 0x00	; 0
- 20c:	36 d0       	rcall	.+108    	; 0x27a <__mulsi3>
- 20e:	7b 01       	movw	r14, r22
- 210:	8c 01       	movw	r16, r24
- 212:	c6 01       	movw	r24, r12
- 214:	b5 01       	movw	r22, r10
- 216:	2d e1       	ldi	r18, 0x1D	; 29
- 218:	33 ef       	ldi	r19, 0xF3	; 243
- 21a:	41 e0       	ldi	r20, 0x01	; 1
- 21c:	50 e0       	ldi	r21, 0x00	; 0
- 21e:	46 d0       	rcall	.+140    	; 0x2ac <__divmodsi4>
- 220:	ca 01       	movw	r24, r20
- 222:	b9 01       	movw	r22, r18
- 224:	2c ee       	ldi	r18, 0xEC	; 236
- 226:	34 ef       	ldi	r19, 0xF4	; 244
- 228:	4f ef       	ldi	r20, 0xFF	; 255
- 22a:	5f ef       	ldi	r21, 0xFF	; 255
- 22c:	26 d0       	rcall	.+76     	; 0x27a <__mulsi3>
- 22e:	6e 0d       	add	r22, r14
- 230:	7f 1d       	adc	r23, r15
- 232:	80 1f       	adc	r24, r16
- 234:	91 1f       	adc	r25, r17
- 236:	97 ff       	sbrs	r25, 7
- 238:	04 c0       	rjmp	.+8      	; 0x242 <do_random+0x7a>
- 23a:	61 50       	subi	r22, 0x01	; 1
- 23c:	70 40       	sbci	r23, 0x00	; 0
- 23e:	80 40       	sbci	r24, 0x00	; 0
- 240:	90 48       	sbci	r25, 0x80	; 128
- 242:	68 83       	st	Y, r22
- 244:	79 83       	std	Y+1, r23	; 0x01
- 246:	8a 83       	std	Y+2, r24	; 0x02
- 248:	9b 83       	std	Y+3, r25	; 0x03
- 24a:	9b 01       	movw	r18, r22
- 24c:	ac 01       	movw	r20, r24
- 24e:	5f 77       	andi	r21, 0x7F	; 127
- 250:	b9 01       	movw	r22, r18
- 252:	ca 01       	movw	r24, r20
- 254:	cd b7       	in	r28, 0x3d	; 61
- 256:	de b7       	in	r29, 0x3e	; 62
- 258:	ea e0       	ldi	r30, 0x0A	; 10
- 25a:	67 c0       	rjmp	.+206    	; 0x32a <__epilogue_restores__+0x10>
 
-0000025c <random_r>:
- 25c:	b5 df       	rcall	.-150    	; 0x1c8 <do_random>
- 25e:	08 95       	ret
+void setup()
+ {
+	//set all LED pins as outputs
+	DDRB |= ALL_LEDS;
+ 242:	87 b3       	in	r24, 0x17	; 23
+ 244:	8f 61       	ori	r24, 0x1F	; 31
+ 246:	87 bb       	out	0x17, r24	; 23
+	setup();
 
-00000260 <random>:
- 260:	8c e6       	ldi	r24, 0x6C	; 108
- 262:	90 e0       	ldi	r25, 0x00	; 0
- 264:	b1 df       	rcall	.-158    	; 0x1c8 <do_random>
- 266:	08 95       	ret
+	//infinite loop
+	while(1)
+	{
+		updateLedState();
+ 248:	38 df       	rcall	.-400    	; 0xba <updateLedState>
+		pulseLeds();
+ 24a:	01 df       	rcall	.-510    	; 0x4e <pulseLeds>
+ 24c:	fd cf       	rjmp	.-6      	; 0x248 <main+0x6>
 
-00000268 <srandom>:
- 268:	60 93 6c 00 	sts	0x006C, r22
- 26c:	70 93 6d 00 	sts	0x006D, r23
- 270:	80 93 6e 00 	sts	0x006E, r24
- 274:	90 93 6f 00 	sts	0x006F, r25
- 278:	08 95       	ret
+0000024e <__mulhi3>:
+ 24e:	55 27       	eor	r21, r21
+ 250:	00 24       	eor	r0, r0
 
-0000027a <__mulsi3>:
- 27a:	ff 27       	eor	r31, r31
- 27c:	ee 27       	eor	r30, r30
- 27e:	bb 27       	eor	r27, r27
- 280:	aa 27       	eor	r26, r26
+00000252 <__mulhi3_loop>:
+ 252:	80 ff       	sbrs	r24, 0
+ 254:	02 c0       	rjmp	.+4      	; 0x25a <__mulhi3_skip1>
+ 256:	06 0e       	add	r0, r22
+ 258:	57 1f       	adc	r21, r23
 
-00000282 <__mulsi3_loop>:
- 282:	60 ff       	sbrs	r22, 0
- 284:	04 c0       	rjmp	.+8      	; 0x28e <__mulsi3_skip1>
- 286:	a2 0f       	add	r26, r18
- 288:	b3 1f       	adc	r27, r19
- 28a:	e4 1f       	adc	r30, r20
- 28c:	f5 1f       	adc	r31, r21
+0000025a <__mulhi3_skip1>:
+ 25a:	66 0f       	add	r22, r22
+ 25c:	77 1f       	adc	r23, r23
+ 25e:	61 15       	cp	r22, r1
+ 260:	71 05       	cpc	r23, r1
+ 262:	21 f0       	breq	.+8      	; 0x26c <__mulhi3_exit>
+ 264:	96 95       	lsr	r25
+ 266:	87 95       	ror	r24
+ 268:	00 97       	sbiw	r24, 0x00	; 0
+ 26a:	99 f7       	brne	.-26     	; 0x252 <__mulhi3_loop>
 
-0000028e <__mulsi3_skip1>:
- 28e:	22 0f       	add	r18, r18
- 290:	33 1f       	adc	r19, r19
- 292:	44 1f       	adc	r20, r20
- 294:	55 1f       	adc	r21, r21
- 296:	96 95       	lsr	r25
- 298:	87 95       	ror	r24
- 29a:	77 95       	ror	r23
- 29c:	67 95       	ror	r22
- 29e:	89 f7       	brne	.-30     	; 0x282 <__mulsi3_loop>
- 2a0:	00 97       	sbiw	r24, 0x00	; 0
- 2a2:	76 07       	cpc	r23, r22
- 2a4:	71 f7       	brne	.-36     	; 0x282 <__mulsi3_loop>
+0000026c <__mulhi3_exit>:
+ 26c:	95 2f       	mov	r25, r21
+ 26e:	80 2d       	mov	r24, r0
+ 270:	08 95       	ret
 
-000002a6 <__mulsi3_exit>:
- 2a6:	cf 01       	movw	r24, r30
- 2a8:	bd 01       	movw	r22, r26
- 2aa:	08 95       	ret
+00000272 <_exit>:
+ 272:	f8 94       	cli
 
-000002ac <__divmodsi4>:
- 2ac:	97 fb       	bst	r25, 7
- 2ae:	09 2e       	mov	r0, r25
- 2b0:	05 26       	eor	r0, r21
- 2b2:	0e d0       	rcall	.+28     	; 0x2d0 <__divmodsi4_neg1>
- 2b4:	57 fd       	sbrc	r21, 7
- 2b6:	04 d0       	rcall	.+8      	; 0x2c0 <__divmodsi4_neg2>
- 2b8:	4b d0       	rcall	.+150    	; 0x350 <__udivmodsi4>
- 2ba:	0a d0       	rcall	.+20     	; 0x2d0 <__divmodsi4_neg1>
- 2bc:	00 1c       	adc	r0, r0
- 2be:	38 f4       	brcc	.+14     	; 0x2ce <__divmodsi4_exit>
-
-000002c0 <__divmodsi4_neg2>:
- 2c0:	50 95       	com	r21
- 2c2:	40 95       	com	r20
- 2c4:	30 95       	com	r19
- 2c6:	21 95       	neg	r18
- 2c8:	3f 4f       	sbci	r19, 0xFF	; 255
- 2ca:	4f 4f       	sbci	r20, 0xFF	; 255
- 2cc:	5f 4f       	sbci	r21, 0xFF	; 255
-
-000002ce <__divmodsi4_exit>:
- 2ce:	08 95       	ret
-
-000002d0 <__divmodsi4_neg1>:
- 2d0:	f6 f7       	brtc	.-4      	; 0x2ce <__divmodsi4_exit>
- 2d2:	90 95       	com	r25
- 2d4:	80 95       	com	r24
- 2d6:	70 95       	com	r23
- 2d8:	61 95       	neg	r22
- 2da:	7f 4f       	sbci	r23, 0xFF	; 255
- 2dc:	8f 4f       	sbci	r24, 0xFF	; 255
- 2de:	9f 4f       	sbci	r25, 0xFF	; 255
- 2e0:	08 95       	ret
-
-000002e2 <__prologue_saves__>:
- 2e2:	2f 92       	push	r2
- 2e4:	3f 92       	push	r3
- 2e6:	4f 92       	push	r4
- 2e8:	5f 92       	push	r5
- 2ea:	6f 92       	push	r6
- 2ec:	7f 92       	push	r7
- 2ee:	8f 92       	push	r8
- 2f0:	9f 92       	push	r9
- 2f2:	af 92       	push	r10
- 2f4:	bf 92       	push	r11
- 2f6:	cf 92       	push	r12
- 2f8:	df 92       	push	r13
- 2fa:	ef 92       	push	r14
- 2fc:	ff 92       	push	r15
- 2fe:	0f 93       	push	r16
- 300:	1f 93       	push	r17
- 302:	cf 93       	push	r28
- 304:	df 93       	push	r29
- 306:	cd b7       	in	r28, 0x3d	; 61
- 308:	de b7       	in	r29, 0x3e	; 62
- 30a:	ca 1b       	sub	r28, r26
- 30c:	db 0b       	sbc	r29, r27
- 30e:	0f b6       	in	r0, 0x3f	; 63
- 310:	f8 94       	cli
- 312:	de bf       	out	0x3e, r29	; 62
- 314:	0f be       	out	0x3f, r0	; 63
- 316:	cd bf       	out	0x3d, r28	; 61
- 318:	09 94       	ijmp
-
-0000031a <__epilogue_restores__>:
- 31a:	2a 88       	ldd	r2, Y+18	; 0x12
- 31c:	39 88       	ldd	r3, Y+17	; 0x11
- 31e:	48 88       	ldd	r4, Y+16	; 0x10
- 320:	5f 84       	ldd	r5, Y+15	; 0x0f
- 322:	6e 84       	ldd	r6, Y+14	; 0x0e
- 324:	7d 84       	ldd	r7, Y+13	; 0x0d
- 326:	8c 84       	ldd	r8, Y+12	; 0x0c
- 328:	9b 84       	ldd	r9, Y+11	; 0x0b
- 32a:	aa 84       	ldd	r10, Y+10	; 0x0a
- 32c:	b9 84       	ldd	r11, Y+9	; 0x09
- 32e:	c8 84       	ldd	r12, Y+8	; 0x08
- 330:	df 80       	ldd	r13, Y+7	; 0x07
- 332:	ee 80       	ldd	r14, Y+6	; 0x06
- 334:	fd 80       	ldd	r15, Y+5	; 0x05
- 336:	0c 81       	ldd	r16, Y+4	; 0x04
- 338:	1b 81       	ldd	r17, Y+3	; 0x03
- 33a:	aa 81       	ldd	r26, Y+2	; 0x02
- 33c:	b9 81       	ldd	r27, Y+1	; 0x01
- 33e:	ce 0f       	add	r28, r30
- 340:	d1 1d       	adc	r29, r1
- 342:	0f b6       	in	r0, 0x3f	; 63
- 344:	f8 94       	cli
- 346:	de bf       	out	0x3e, r29	; 62
- 348:	0f be       	out	0x3f, r0	; 63
- 34a:	cd bf       	out	0x3d, r28	; 61
- 34c:	ed 01       	movw	r28, r26
- 34e:	08 95       	ret
-
-00000350 <__udivmodsi4>:
- 350:	a1 e2       	ldi	r26, 0x21	; 33
- 352:	1a 2e       	mov	r1, r26
- 354:	aa 1b       	sub	r26, r26
- 356:	bb 1b       	sub	r27, r27
- 358:	fd 01       	movw	r30, r26
- 35a:	0d c0       	rjmp	.+26     	; 0x376 <__udivmodsi4_ep>
-
-0000035c <__udivmodsi4_loop>:
- 35c:	aa 1f       	adc	r26, r26
- 35e:	bb 1f       	adc	r27, r27
- 360:	ee 1f       	adc	r30, r30
- 362:	ff 1f       	adc	r31, r31
- 364:	a2 17       	cp	r26, r18
- 366:	b3 07       	cpc	r27, r19
- 368:	e4 07       	cpc	r30, r20
- 36a:	f5 07       	cpc	r31, r21
- 36c:	20 f0       	brcs	.+8      	; 0x376 <__udivmodsi4_ep>
- 36e:	a2 1b       	sub	r26, r18
- 370:	b3 0b       	sbc	r27, r19
- 372:	e4 0b       	sbc	r30, r20
- 374:	f5 0b       	sbc	r31, r21
-
-00000376 <__udivmodsi4_ep>:
- 376:	66 1f       	adc	r22, r22
- 378:	77 1f       	adc	r23, r23
- 37a:	88 1f       	adc	r24, r24
- 37c:	99 1f       	adc	r25, r25
- 37e:	1a 94       	dec	r1
- 380:	69 f7       	brne	.-38     	; 0x35c <__udivmodsi4_loop>
- 382:	60 95       	com	r22
- 384:	70 95       	com	r23
- 386:	80 95       	com	r24
- 388:	90 95       	com	r25
- 38a:	9b 01       	movw	r18, r22
- 38c:	ac 01       	movw	r20, r24
- 38e:	bd 01       	movw	r22, r26
- 390:	cf 01       	movw	r24, r30
- 392:	08 95       	ret
-
-00000394 <_exit>:
- 394:	f8 94       	cli
-
-00000396 <__stop_program>:
- 396:	ff cf       	rjmp	.-2      	; 0x396 <__stop_program>
+00000274 <__stop_program>:
+ 274:	ff cf       	rjmp	.-2      	; 0x274 <__stop_program>
