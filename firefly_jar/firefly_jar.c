@@ -7,7 +7,6 @@
 
 #include <stdlib.h>
 #include <avr/io.h>
-#include <inttypes.h>
 
 //Hardware definitions
 #define LED1      PB0
@@ -17,13 +16,14 @@
 #define LED5      PB4
 #define LED6      PB5
 
+//max level
+#define V_MAX 255
+
 int leds[6] = {LED1, LED2, LED3, LED4, LED5, LED6};
 int values[6] = {0,0,0,0,0,0};
 int states[6] = {0,0,0,0,0,0};
 unsigned char led = 0;
 
-//max level
-#define V_MAX 255
 
 //pulse state
 #define OFF 0
@@ -34,9 +34,9 @@ unsigned char led = 0;
 void ledCheck(int led, unsigned char value)
 {
 	if (value > values[led]){
-		PORTB &=~ _BV(led);
+		PORTB &=~ (1 << led);
 	}else{
-		PORTB |= _BV(led);
+		PORTB |= (1 << led);
 	}
 }
 
