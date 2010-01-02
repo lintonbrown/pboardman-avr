@@ -1,5 +1,5 @@
-#include <avr/io.h>
-#include <util/delay.h>
+#import <avr/io.h>
+#import <util/delay.h>
 #define LED PB0 //output on PB0 which is OC0A
 int i = 0;
 int main(void)
