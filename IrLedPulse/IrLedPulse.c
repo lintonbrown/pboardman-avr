@@ -6,7 +6,6 @@
  * Created on: Dec 26, 2009
  *      Author: Paul
  */
-
 #include <avr/io.h>
 #include <avr/delay.h>
 
@@ -24,6 +23,7 @@ void pulseIr()
 	//   Prescale = 1/8
 	//   OCR0A = 104 (this is the compare value)
 	//   F = Fclk / (2 * Prescale * (1 + OCR0A) ) = 38KHz
+	//   F = 1,000,000 / (2 * 1/8 * 105) = 38095 Hz
 	TCCR0A = 0 | (1<<COM0A0) | (1<<WGM01); // COM0A0=1 to toggle OC0A on Compare Match
 
 	TCCR0B = 0 | (1<<CS01);	// CS01=1 for divide by 8 prescaler (this starts Timer0)
