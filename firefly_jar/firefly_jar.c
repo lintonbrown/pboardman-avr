@@ -1,96 +1,174 @@
-///*
-// * firefly_jar.c
-// *
-// *  Created on: Mar 19, 2009
-// *      Author: Paul
-// */
-//
-//#include <stdlib.h>
-//#include <avr/io.h>
-//
-////Hardware definitions
-//#define LED1      PB0
-//#define LED2      PB1
-//#define LED3      PB2
-//#define LED4      PB3
-//#define LED5      PB4
-//#define LED6      PB5
-//
-////max level
-//#define V_MAX 255
-//
-//int leds[6] = {LED1, LED2, LED3, LED4, LED5, LED6};
-//int values[6] = {0,0,0,0,0,0};
-//int states[6] = {0,0,0,0,0,0};
-//unsigned char led = 0;
-//
-//
-////pulse state
-//#define OFF 0
-//#define PULSE_ON 1
-//#define ON 2
-//#define PULSE_OFF 255
-//
-//void ledCheck(int led, unsigned char value)
-//{
-//	if (value > values[led]){
-//		PORTB &=~ (1 << led);
-//	}else{
-//		PORTB |= (1 << led);
-//	}
-//}
-//
-//void updateState()
-//{
-//	for(led = 1; led < 5; led++)
-//	{
-//		switch(states[led])
-//		{
-//			case OFF:
-//				//RAND_MAX is defined as 0x7FFF
-//				if(random() > 0x6FFF)
-//					states[led] = PULSE_ON;
-//				break;
-//			case PULSE_ON:
-//				if(++values[led] == V_MAX)
-//				{
-//					states[led] = ON;
-//				}
-//				break;
-//			case ON:
-//				states[led]++;
-//				break;
-//			case PULSE_OFF:
-//				if(--values[led] == 0)
-//				{
-//					states[led] = OFF;
-//				}
-//				break;
-//		}
-//	}
-//}
-//
-////int main(void){
-////	unsigned char i=0;
-////	unsigned char j=0;
-////	//Set pins to output
-////	DDRB |= _BV(DDB0);
-////	DDRB |= _BV(DDB1);
-////	DDRB |= _BV(DDB2);
-////	DDRB |= _BV(DDB3);
-////	DDRB |= _BV(DDB4);
-////
-////	while (1) {
-////		//Software PWM
-////		for (j=1; j<5;j++)
-////		{
-////			ledCheck(j, i);
-////		}
-////
-////		if (i==0){ //After blinking LEDs 255 times
-////			updateState();
-////		}
-////		i++;
-////	}
-////	return 0; //Will never get here
-////}
+/*
+ * FireflyJar.c
+ *
+ *  Created on: Jan 1, 2010
+ *      Author: Paul
+ */
+#import <util/delay.h>
+#import <avr/io.h>
+#import <avr/interrupt.h>
+#import <stdlib.h>
+
+#ifndef F_CPU
+	#define F_CPU 9600000UL
+#endif
+
+//LED pin defs
+#define LED1			PB0
+#define LED2			PB1
+#define LED3			PB2
+#define LED4			PB3
+#define LED5			PB4
+#define N_LEDS			5
+#define ALL_LEDS (1 << LED1) | (1 << LED2) | (1 << LED3) | (1 << LED4) | (1 << LED5)
+
+//Max value for brightness
+#define MAX				100
+
+#define PULSE_UP 1
+#define PULSE_DOWN 0
+
+volatile unsigned char buffer[N_LEDS];
+
+//counter for use in updateLedState() and pulseLeds()
+unsigned char i,j;
+
+//structure for storing data on each LED
+struct ledData {
+	unsigned char mBrightness;
+	unsigned int mTime;
+	unsigned char mPin;
+	unsigned char mPulseDirection;
+};
+
+//set up some initial values
+struct ledData led_data[] = {
+		{0, 1000,  LED1, PULSE_DOWN},
+		{0, 10, LED2, PULSE_DOWN},
+		{0, 500, LED3, PULSE_DOWN},
+		{0, 50, LED4, PULSE_DOWN},
+		{0, 150,  LED5, PULSE_DOWN}
+};
+
+//return a random time interval from 0 to 255
+int getTime()
+{
+	return TCNT0;//just read the current timer/counter value
+}
+
+void updateLedState()
+{
+	for(i = 0; i < N_LEDS; i++)
+	{
+		switch(led_data[i].mBrightness)
+		{
+			case MAX://led is on
+				if(--led_data[i].mTime == 0)
+				{
+					//decrement the brightness, this puts the LED in a
+					//pulse state
+					led_data[i].mBrightness--;
+
+					//specify the "down" direction for pulsing
+					led_data[i].mPulseDirection = PULSE_DOWN;
+				}
+				break;
+			case 0://led is off
+				if(--led_data[i].mTime == 0)
+				{
+					//increment the brightness,this puts the LED in
+					//a pulse state
+					led_data[i].mBrightness++;
+
+					//specify the "up" direction for pulsing
+					led_data[i].mPulseDirection = PULSE_UP;
+
+					//set the ON time
+					led_data[i].mTime = getTime() + 1;
+				}
+				break;
+			default: //pulse state
+				if(led_data[i].mPulseDirection == PULSE_UP)
+				{
+					led_data[i].mBrightness++;
+				}
+				else
+				{
+					if(--led_data[i].mBrightness == 0)
+					{
+						//set the OFF time - make this longer than the on time
+						led_data[i].mTime = (getTime() + 1) * 5;
+					}
+				}
+				break;
+		}
+	}
+}
+
+void init_timers()
+{
+	//TIFR0  = (1 << TOV0);          // clear interrupt flag
+	TIMSK0 = (1 << TOIE0);         // enable overflow interrupt
+	TCCR0B = (1 << CS00);          // start timer, no prescale
+
+	//enable interrupts
+	sei();
+}
+
+void init_io()
+{
+	//set all LED pins as outputs
+	DDRB |= ALL_LEDS;
+	PORTB &= ~(ALL_LEDS); //off to start
+}
+
+void setup()
+ {
+	//srand(getLight());
+	init_io();
+	init_timers();
+}
+
+int main(void)
+{
+	setup();
+	//infinite loop
+	while(1)
+	{
+		updateLedState();
+		_delay_ms(10);
+	}
+}
+
+/*
+ * Timer/Counter overflow interrupt. This is called each time
+ * the counter overflows (255 counts/cycles).
+ */
+ISR(TIM0_OVF_vect)
+{
+	//static variables maintain state from one call to the next
+	static unsigned char sPortBmask = ALL_LEDS;
+	static unsigned char sCounter = 255;
+
+	//set port pins straight away (no waiting for processing)
+	PORTB = sPortBmask;
+
+	//this counter will overflow back to 0 after reaching 255.
+	//So we end up adjusting the LED states for every 256 overflows.
+	if(++sCounter == 0)
+	{
+		for(i = 0; i < N_LEDS; i++)
+		{
+			buffer[i] = led_data[i].mBrightness;
+		}
+		//set all pins to high
+		sPortBmask = ALL_LEDS;
+	}
+	//this loop is considered for every overflow interrupt.
+	//this is the software PWM.
+	if(buffer[0] == sCounter) sPortBmask &= ~(1 << led_data[0].mPin);
+	if(buffer[1] == sCounter) sPortBmask &= ~(1 << led_data[1].mPin);
+	if(buffer[2] == sCounter) sPortBmask &= ~(1 << led_data[2].mPin);
+	if(buffer[3] == sCounter) sPortBmask &= ~(1 << led_data[3].mPin);
+	if(buffer[4] == sCounter) sPortBmask &= ~(1 << led_data[4].mPin);
+}
