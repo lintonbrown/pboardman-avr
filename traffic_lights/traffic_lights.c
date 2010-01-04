@@ -7,9 +7,9 @@
 #include <avr/io.h>
 #include <avr/delay.h>
 
-#define RED_LED PB2
+#define RED_LED PB0
 #define YELLOW_LED PB1
-#define GREEN_LED PB0
+#define GREEN_LED PB2
 
 #define RED_DELAY 10
 #define YELLOW_DELAY 3
