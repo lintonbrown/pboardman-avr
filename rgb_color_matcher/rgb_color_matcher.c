@@ -2,6 +2,8 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
+#include <math.h>
 
 #define LED_RED_AUTO PD7 // pin 17 (atmega)
 #define LED_GREEN_AUTO PD6
@@ -32,6 +34,8 @@ uint8_t mUserLedLevels[3] = {0,0,0};
 uint8_t mAutoLedLevels[3] = {150, 0, 30};
 uint8_t mBuffer[6];
 uint8_t i;
+uint8_t kDelta = 50;
+uint8_t mAdcChannel[3] = {RED_POT, GREEN_POT, BLUE_POT}; //is this correct?
 
 uint8_t readAdc(uint8_t pChannel)
 {
@@ -77,15 +81,63 @@ void initAdc()
 	//we only need 8-bit precision.  Left adjust the ADC result
 	//so that we can read the ADCH register and be done with it.
 	ADMUX |= (1 << ADLAR);
+
+
+	//enable free running mode - comment out if using readAdc();
+//	ADCSRA |= (1 << ADFR);
+
+	//enable interrupts - comment this out if using single conversion i.e. readAdc()!
+//	ADCSRA |= (1 << ADIE);
+
+	//start conversions
+//	ADCSRA |= (1 << ADSC);
 }
 
 void setAutoLeds()
 {
 	for(i = 0; i < 3; i++)
 	{
-		mAutoLedLevels[i] = (uint8_t)rand()/112;
+		mAutoLedLevels[i] = (uint8_t)(rand()/112);
 	}
 }
+
+//use a variable in EEPROM
+void initRand()
+{
+	uint8_t vSeed = eeprom_read_word(0);
+	srand(++vSeed);
+	eeprom_write_word(0, vSeed);
+}
+
+void flashAndReset()
+{
+	cli();
+	for(i=0;i<5;i++)
+	{
+		PORTD |= OUTPUT_MASK_AUTO;
+		_delay_ms(100);
+		PORTD &=~ OUTPUT_MASK_AUTO;
+		_delay_ms(100);
+	}
+	setAutoLeds();
+	sei();
+}
+//compare the RGB vectors for the two RGB LEDs
+//if they're within kDelta then flash and reset
+//to a new value
+void compareValues()
+{
+	uint16_t vDistance = 0;
+	for(i=0;i<3;i++)
+	{
+		vDistance += pow((mUserLedLevels[i] - mAutoLedLevels[i]),2);
+	}
+	if(sqrt(vDistance) <= kDelta)
+	{
+		flashAndReset();
+	}
+}
+
 
 int main(void)
 {
@@ -93,6 +145,7 @@ int main(void)
 	DDRC &=~ INPUT_MASK;//set potentiometer pin for input
 	initTimers();
 	initAdc();
+	initRand();
 	setAutoLeds();
 
 	while (1)
@@ -100,8 +153,10 @@ int main(void)
 		for(i = 0; i < 3; i++)
 		{
 			mUserLedLevels[i] = readAdc(i);
+			_delay_ms(5);
 		}
 		_delay_ms(10);
+		compareValues();
 	}
 }
 
@@ -132,11 +187,18 @@ ISR(TIMER2_OVF_vect)
 	}
 	//this loop is considered for every overflow interrupt.
 	//this is the software PWM.
-	if(mBuffer[0] == sCounter) sPortBmask &= ~(1 << LED_RED_AUTO);
-	if(mBuffer[1] == sCounter) sPortBmask &= ~(1 << LED_GREEN_AUTO);
-	if(mBuffer[2] == sCounter) sPortBmask &= ~(1 << LED_BLUE_AUTO);
-	if(mBuffer[3] == sCounter) sPortBmask &= ~(1 << LED_RED_USER);
-	if(mBuffer[4] == sCounter) sPortBmask &= ~(1 << LED_GREEN_USER);
-	if(mBuffer[5] == sCounter) sPortBmask &= ~(1 << LED_BLUE_USER);
+	if(mBuffer[0] == sCounter) sPortBmask &= ~(1 << LED_RED_USER);
+	if(mBuffer[1] == sCounter) sPortBmask &= ~(1 << LED_GREEN_USER);
+	if(mBuffer[2] == sCounter) sPortBmask &= ~(1 << LED_BLUE_USER);
+	if(mBuffer[3] == sCounter) sPortBmask &= ~(1 << LED_RED_AUTO);
+	if(mBuffer[4] == sCounter) sPortBmask &= ~(1 << LED_GREEN_AUTO);
+	if(mBuffer[5] == sCounter) sPortBmask &= ~(1 << LED_BLUE_AUTO);
 }
 
+/*
+ * ADC interrupt
+ */
+//ISR(ADC_vect)
+//{
+//
+//}
