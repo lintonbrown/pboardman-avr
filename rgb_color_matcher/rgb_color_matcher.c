@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
-#include <math.h>
+#include <math.h> //for square root function
 
 #define LED_RED_AUTO PD7 // pin 17 (atmega)
 #define LED_GREEN_AUTO PD6
@@ -13,6 +13,7 @@
 #define LED_BLUE_USER PD2
 #define OUTPUT_MASK_AUTO (1 << PD7) | (1 << PD6) | (1 << PD5)
 #define OUTPUT_MASK_USER (1 << PD4) | (1 << PD3) | (1 << PD2)
+#define SPEAKER_PIN PB3
 #define RED_POT PC0 //adc0
 #define GREEN_POT PC1
 #define BLUE_POT PC2
@@ -20,15 +21,12 @@
 #define PWM_MIN 0
 #define PWM_MAX 225
 
+//define the processor speed (if it's not already been defined by the compiler)
 #ifndef F_CPU
 	#define F_CPU 8000000UL
 #endif
 /**
- * TODO read and write eeprom seeds for rand() so that the
- * values don't always start the same.
- * TODO calculate distance of user and auto colour vectors
- * TODO add flash for when user gets the colours to within d.
- * TODO add switch for adjusting the difficulty (change d).
+ * TODO add switch for adjusting the difficulty (speaker on/off).
  */
 uint8_t mUserLedLevels[3] = {0,0,0};
 uint8_t mAutoLedLevels[3] = {150, 0, 30};
@@ -36,6 +34,7 @@ uint8_t mBuffer[6];
 uint8_t i;
 uint8_t kDelta = 50;
 uint8_t mAdcChannel[3] = {RED_POT, GREEN_POT, BLUE_POT}; //is this correct?
+uint8_t mSpeakerOn = 1;
 
 uint8_t readAdc(uint8_t pChannel)
 {
@@ -55,11 +54,27 @@ uint8_t readAdc(uint8_t pChannel)
 
 void initTimers()
 {
-	//enable overflow interrupt
-	TIMSK = (1 << TOIE2);
+	//enable timer2 overflow interrupt
+	//TIMSK = (1 << TOIE2);
 
-	//start timer, no prescale
-	TCCR2 = (1 << CS20);
+	//enable timer/counter0 overflow interrupt
+	TIMSK |= (1 << TOIE0);
+
+	//start timer2, 256 prescale
+	TCCR2 = (1 << CS22) | (1 << CS21);
+
+	//start timer0, no prescale
+	TCCR0 = (1 << CS00);
+
+	//set ctc mode for timer2 PWM
+	TCCR2 |= (1 << WGM21);
+
+	//set toggle logical level on each compare match
+	//this allows waveform generation in CTC mode
+	TCCR2 |= (1 << COM20);
+
+	//gives frequency of ((8MHz)/256)/255) = 122.55 Hz
+	OCR2 = 255;
 
 	//enable interrupts
 	sei();
@@ -73,7 +88,7 @@ void initAdc()
 	// Select divider factor 8, so we get 1 MHz/8 = 125 kHz ADC clock
 	ADCSRA |= (1<<ADPS1) | (1<<ADPS0);
 
-	//we'll select the channel each time we read the ADC
+	// we'll select the channel each time we read the ADC
 
 	// Use Vcc as voltage reference
 	ADMUX |= (1 << REFS0);
@@ -81,16 +96,6 @@ void initAdc()
 	//we only need 8-bit precision.  Left adjust the ADC result
 	//so that we can read the ADCH register and be done with it.
 	ADMUX |= (1 << ADLAR);
-
-
-	//enable free running mode - comment out if using readAdc();
-//	ADCSRA |= (1 << ADFR);
-
-	//enable interrupts - comment this out if using single conversion i.e. readAdc()!
-//	ADCSRA |= (1 << ADIE);
-
-	//start conversions
-//	ADCSRA |= (1 << ADSC);
 }
 
 void setAutoLeds()
@@ -104,9 +109,9 @@ void setAutoLeds()
 //use a variable in EEPROM
 void initRand()
 {
-	uint8_t vSeed = eeprom_read_word(0);
-	srand(++vSeed);
-	eeprom_write_word(0, vSeed);
+	uint8_t vSeed = eeprom_read_word(0); // load last stored seed
+	srand(++vSeed); // increment and use value as seed
+	eeprom_write_word(0, vSeed); //store the new seed for next time
 }
 
 void flashAndReset()
@@ -114,6 +119,10 @@ void flashAndReset()
 	cli();
 	for(i=0;i<5;i++)
 	{
+		if(mSpeakerOn)
+		{
+			OCR2 = i * 50;
+		}
 		PORTD |= OUTPUT_MASK_AUTO;
 		_delay_ms(100);
 		PORTD &=~ OUTPUT_MASK_AUTO;
@@ -122,6 +131,7 @@ void flashAndReset()
 	setAutoLeds();
 	sei();
 }
+
 //compare the RGB vectors for the two RGB LEDs
 //if they're within kDelta then flash and reset
 //to a new value
@@ -132,17 +142,24 @@ void compareValues()
 	{
 		vDistance += pow((mUserLedLevels[i] - mAutoLedLevels[i]),2);
 	}
-	if(sqrt(vDistance) <= kDelta)
+	vDistance = sqrt(vDistance);
+
+	if(mSpeakerOn)
+	{
+		OCR2 = vDistance/2;
+	}
+
+	if(vDistance <= kDelta)
 	{
 		flashAndReset();
 	}
 }
 
-
 int main(void)
 {
 	DDRD |= OUTPUT_MASK_AUTO | OUTPUT_MASK_USER;//led set as output
 	DDRC &=~ INPUT_MASK;//set potentiometer pin for input
+	DDRB |= (1 << SPEAKER_PIN); //speaker output
 	initTimers();
 	initAdc();
 	initRand();
@@ -161,17 +178,17 @@ int main(void)
 }
 
 /*
- * Timer/Counter overflow interrupt. This is called each time
+ * Timer/Counter overflow interrupt (timer0). This is called each time
  * the counter overflows (255 counts/cycles).
  */
-ISR(TIMER2_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
 	//static variables maintain state from one call to the next
-	static unsigned char sPortBmask = OUTPUT_MASK_AUTO | OUTPUT_MASK_USER;
+	static unsigned char sPortDmask = OUTPUT_MASK_AUTO | OUTPUT_MASK_USER;
 	static unsigned char sCounter = 255;
 
 	//set port pins straight away (no waiting for processing)
-	PORTD = sPortBmask;
+	PORTD = sPortDmask;
 
 	//this counter will overflow back to 0 after reaching 255.
 	//So we end up adjusting the LED states for every 256 overflows.
@@ -183,22 +200,14 @@ ISR(TIMER2_OVF_vect)
 			mBuffer[i + 3] = mAutoLedLevels[i];
 		}
 		//set all pins to high
-		sPortBmask = OUTPUT_MASK_AUTO | OUTPUT_MASK_USER;
+		sPortDmask = OUTPUT_MASK_AUTO | OUTPUT_MASK_USER;
 	}
 	//this loop is considered for every overflow interrupt.
 	//this is the software PWM.
-	if(mBuffer[0] == sCounter) sPortBmask &= ~(1 << LED_RED_USER);
-	if(mBuffer[1] == sCounter) sPortBmask &= ~(1 << LED_GREEN_USER);
-	if(mBuffer[2] == sCounter) sPortBmask &= ~(1 << LED_BLUE_USER);
-	if(mBuffer[3] == sCounter) sPortBmask &= ~(1 << LED_RED_AUTO);
-	if(mBuffer[4] == sCounter) sPortBmask &= ~(1 << LED_GREEN_AUTO);
-	if(mBuffer[5] == sCounter) sPortBmask &= ~(1 << LED_BLUE_AUTO);
+	if(mBuffer[0] == sCounter) sPortDmask &= ~(1 << LED_RED_USER);
+	if(mBuffer[1] == sCounter) sPortDmask &= ~(1 << LED_GREEN_USER);
+	if(mBuffer[2] == sCounter) sPortDmask &= ~(1 << LED_BLUE_USER);
+	if(mBuffer[3] == sCounter) sPortDmask &= ~(1 << LED_RED_AUTO);
+	if(mBuffer[4] == sCounter) sPortDmask &= ~(1 << LED_GREEN_AUTO);
+	if(mBuffer[5] == sCounter) sPortDmask &= ~(1 << LED_BLUE_AUTO);
 }
-
-/*
- * ADC interrupt
- */
-//ISR(ADC_vect)
-//{
-//
-//}
