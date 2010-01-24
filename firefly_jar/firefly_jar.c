@@ -10,7 +10,7 @@
 #import <stdlib.h>
 
 #ifndef F_CPU
-	#define F_CPU 9600000UL
+	#define F_CPU 8000000UL
 #endif
 
 //LED pin defs
