@@ -21,9 +21,6 @@
 #define ALL_LEDS    ((1 << RED_LED) | (1 << GREEN_LED) | (1 << BLUE_LED))
 
 //Maximum value for led brightness
-//TODO should we just have a single value? Is there any benefit from adjusting
-//each colour separately?
-
 #define R_MAX 255
 #define G_MAX 255
 #define B_MAX 255
@@ -47,18 +44,14 @@ unsigned char mState;
 
 void init_timers()
 {
-    TIMSK0 = (1 << TOIE0);         // enable overflow interrupt
-    TCCR0B = (1 << CS00);          // start timer, no prescale
+    TIMSK0 = (1 << TOIE0);// enable overflow interrupt
+    TCCR0B = (1 << CS00); // start timer, no prescale
 
     //enable interrupts
     sei();
 }
 
 void rgbCycle(){
-	//Go one step through a state machine that fades through the rainbow
-	//n sets the step increment
-	//255%n must equal 0
-	switch (mState) {
 	case RedToYellow:
 		mRgbValues[GREEN_INDEX]++;
 		if (mRgbValues[GREEN_INDEX] == G_MAX)
@@ -99,10 +92,13 @@ void rgbCycle(){
 int main(void){
 	//Set LED pins to output
 	DDRB |= ALL_LEDS;
+
 	init_timers();
+
 	while (1) {
 		rgbCycle();
 		_delay_ms(250);
+
 		//I like the orange state and it only lasts for a second
 		//so lets extend it a little bit more
 		if(mState == RedToYellow)
