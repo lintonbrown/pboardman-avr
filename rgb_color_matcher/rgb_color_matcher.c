@@ -1,3 +1,12 @@
+/*
+ * ATmega8 Internal RC oscillator clock source at 8MHz
+ * i.e. fuse bytes are set to allow ~8MHz operation.
+ *
+ * Distributed under Creative Commons 3.0 -- Attib & Share Alike
+ *
+ * Created on: Feb 15, 2010
+ *     Author: PaulBo
+ */
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdlib.h>
@@ -24,11 +33,15 @@
 	#define F_CPU 8000000UL
 #endif
 
+//some constants
+#define DELTA 50
+#define SINGLE_DIFF_LIMIT 20
+#define MIN_RGB_LEVEL 50
+
 uint8_t mUserLedLevels[3] = {0, 0, 0};
 uint8_t mAutoLedLevels[3] = {0, 0, 0};
 uint8_t mBuffer[6];
 uint8_t i;
-uint8_t kDelta = 50;
 
 uint8_t readAdc(uint8_t pChannel)
 {
@@ -46,19 +59,18 @@ uint8_t readAdc(uint8_t pChannel)
 	return(255 - ADCH);
 }
 
+// timer0 is used for the software PWM
+// timer2 is used for controlling the speaker (via hardware PWM)
 void initTimers()
 {
-	//enable timer2 overflow interrupt
-	//TIMSK = (1 << TOIE2);
-
 	//enable timer/counter0 overflow interrupt
 	TIMSK |= (1 << TOIE0);
 
-	//start timer2, 256 prescale
-	TCCR2 = (1 << CS22) | (1 << CS21);
-
 	//start timer0, no prescale
 	TCCR0 = (1 << CS00);
+
+	//start timer2, 256 prescale
+	TCCR2 = (1 << CS22) | (1 << CS21);
 
 	//set CTC mode for timer2 PWM
 	TCCR2 |= (1 << WGM21);
@@ -80,7 +92,7 @@ void initAdc()
 	ADCSRA = (1 << ADEN);
 
 	// Select divider factor 8, so we get 1 MHz/8 = 125 kHz ADC clock
-	ADCSRA |= (1<<ADPS1) | (1<<ADPS0);
+	ADCSRA |= (1<<ADPS2) | (1<<ADPS1);
 
 	// Use Vcc as voltage reference
 	ADMUX |= (1 << REFS0);
@@ -90,11 +102,20 @@ void initAdc()
 	ADMUX |= (1 << ADLAR);
 }
 
+// randomly assign values to the RGB LEDs.
+// we require a min value so that we aren't
+// playing with v.dark colours
 void setAutoLeds()
 {
-	for(i = 0; i < 3; i++)
+	uint8_t vTotal = 0;
+	while(vTotal < MIN_RGB_LEVEL)
 	{
-		mAutoLedLevels[i] = (uint8_t)(rand()/112);
+		vTotal = 0;
+		for(i = 0; i < 3; i++)
+		{
+			mAutoLedLevels[i] = (uint8_t)(rand()/112);
+			vTotal += mAutoLedLevels[i];
+		}
 	}
 }
 
@@ -144,17 +165,26 @@ void flashAndReset()
  */
 void compareValues()
 {
-	uint16_t vDistance = 0;
+	uint16_t vDistance;
+	uint16_t vDiff;
+	// variables are supposed to be automatically initialized to 0
+	// but this didn't work unless I explicitly initialized to 0
+	uint8_t vFail = 0;
 	for(i=0;i<3;i++)
 	{
-		vDistance += pow((mUserLedLevels[i] - mAutoLedLevels[i]),2);
+		vDiff = pow((mUserLedLevels[i] - mAutoLedLevels[i]),2);
+		vDistance += vDiff;
+		if(vDiff > SINGLE_DIFF_LIMIT)
+		{
+			vFail = 1;
+		}
 	}
 	vDistance = sqrt(vDistance);
 
 	//set the speaker frequency
-	OCR2 = vDistance/2;
+	OCR2 = (uint8_t)((vDistance + 1)/2);
 
-	if(vDistance <= kDelta)
+	if(!vFail)
 	{
 		flashAndReset();
 	}
