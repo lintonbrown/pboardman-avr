@@ -1,6 +1,8 @@
 /*
  * charlieplex_test.c
  *
+ * Running on an ATtiny45.
+ *
  * Here we control 6 LEDs through 3 pins (PB0:2).
  *
  * In order to illuminate each LED we do the following:
