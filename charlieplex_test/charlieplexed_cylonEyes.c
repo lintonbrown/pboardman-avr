@@ -8,8 +8,8 @@
  * In order to illuminate each LED we do the following:
  *
  * LED1 - PB0 & 2 output PB2 input. PB0 sourcing, PB1 sinking. Pull-up on PB2
- * LED2 - PB1 & 3 output PB0 input. PB1 sourcing, PB2 sinking. Pull-up on PB0
- * LED3 - PB0 & 2 output PB2 input. PB1 sourcing, PB0 sinking. Pull-up on PB2
+ * LED2 - PB0 & 2 output PB2 input. PB1 sourcing, PB0 sinking. Pull-up on PB2
+ * LED3 - PB1 & 3 output PB0 input. PB1 sourcing, PB2 sinking. Pull-up on PB0
  * LED4 - PB1 & 3 output PB0 input. PB2 sourcing, PB1 sinking. Pull-up on PB0
  * LED5 - PB0 & 3 output PB1 input. PB0 sourcing, PB2 sinking. Pull-up on PB1
  * LED6 - PB0 & 3 output PB1 input. PB2 sourcing, PB0 sinking. Pull-up on PB2
@@ -19,11 +19,11 @@
  *
  * PB0 ----------------------
  *        |   -      |      |
- *        1   3      |      |
+ *        1   2      |      |
  *        -   |      |      -
  * PB1 --------      5      6
  *        |   -      -      |
- *        2   4      |      |
+ *        3   4      |      |
  *        -   |      |      |
  * PB2 ----------------------
  *
@@ -41,7 +41,7 @@
 	#define F_CPU 1000000UL
 #endif
 
-#define DELAY_TIME 150
+#define DELAY_TIME 50
 #define N_LED 6
 
 // see class comments for pin setting explanation
@@ -51,8 +51,8 @@ struct leds {
 	uint8_t mPortB;
 } ledData[] = {
 		{0b00011011, 0b11100101},
-		{0b00011110, 0b11100011},
 		{0b00011011, 0b11100110},
+		{0b00011110, 0b11100011},
 		{0b00011110, 0b11100101},
 		{0b00011101, 0b11100011},
 		{0b00011101, 0b11100110}
