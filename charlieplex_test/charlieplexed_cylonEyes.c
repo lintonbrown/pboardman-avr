@@ -18,9 +18,9 @@
  * The hyphens ('-') identify the cathode pins of the LEDs.
  *
  * PB0 ----------------------
- *        -   |      |      |
+ *        |   -      |      |
  *        1   3      |      |
- *        |   -      |      -
+ *        -   |      |      -
  * PB1 --------      5      6
  *        |   -      -      |
  *        2   4      |      |
@@ -45,6 +45,7 @@
 #define N_LED 6
 
 // see class comments for pin setting explanation
+// unused pins are set to input with pull-up resistors activated
 struct leds {
 	uint8_t mDdrB;
 	uint8_t mPortB;
