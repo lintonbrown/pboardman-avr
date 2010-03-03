@@ -9,6 +9,11 @@
 #include <avr/io.h>
 #include <avr/delay.h>
 
+#ifndef F_CPU
+	#define F_CPU 1000000UL
+#endif
+
+
 void pulseIr()
 {
 	// Use Timer 0 to pulse the IR LED at 38KHz
@@ -24,9 +29,9 @@ void pulseIr()
 	//   OCR0A = 104 (this is the compare value)
 	//   F = Fclk / (2 * Prescale * (1 + OCR0A) ) = 38KHz
 	//   F = 1,000,000 / (2 * 1/8 * 105) = 38095 Hz
-	TCCR0A = 0 | (1<<COM0A0) | (1<<WGM01); // COM0A0=1 to toggle OC0A on Compare Match
+	TCCR0A = 0| (1 << COM0A0) | (1 << WGM01); // COM0A0=1 to toggle OC0A on Compare Match
 
-	TCCR0B = 0 | (1<<CS01);	// CS01=1 for divide by 8 prescaler (this starts Timer0)
+	TCCR0B = 0 | (1 << CS01);	// CS01=1 for divide by 8 prescaler (this starts Timer0)
 	OCR0A = 104;  // to output 38,095.2KHz on OC0A (PB0, pin 5)
 
 	// keep the IR going at 38KHz for 170 microseconds (which is slightly more than 6 periods of 38KHz)
@@ -44,6 +49,7 @@ int main(void)
 	while(1)
 	{
 		pulseIr();
-		_delay_ms(10);
+		_delay_us(400);
+		//nothing to do here.  Ir pulse is via Timer 0
 	}
 }
