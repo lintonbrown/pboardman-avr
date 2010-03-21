@@ -26,6 +26,6 @@ The code implements software PWM as described by the ATMEL technote [http://www.
 
 = Future = 
 
-* SMD LEDs version.
-* more natural firefly simulation
-* store random seed in EEPROM to alter behaviour from one use to the next (though the kids might like the regularity of the current behaviour).
+ * SMD LEDs version.
+ * more natural firefly simulation
+ * store random seed in EEPROM to alter behaviour from one use to the next (though the kids might like the regularity of the current behaviour).
