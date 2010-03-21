@@ -22,6 +22,10 @@ http://www.fangletronics.com/2010/02/jar-o-fireflies-mark-ii.html
 
 This was done almost a year later.  I wanted to revisit the idea and do it properly.  I made this one battery powered (coin cell) so that it could be used as a night light in my kids room.
 
-The code implements the software PWM as described by the ATMEL technote [http://www.atmel.com/dyn/resources/prod_documents/doc8020.pdf "Low-Jitter Multi Channel Software PWM".
+The code implements software PWM as described by the ATMEL technote [http://www.atmel.com/dyn/resources/prod_documents/doc8020.pdf "Low-Jitter Multi Channel Software PWM".
 
 = Future = 
+
+* SMD LEDs version.
+* more natural firefly simulation
+* store random seed in EEPROM to alter behaviour from one use to the next (though the kids might like the regularity of the current behaviour).
