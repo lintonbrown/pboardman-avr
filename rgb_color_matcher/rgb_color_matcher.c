@@ -91,7 +91,7 @@ void initAdc()
 	// Enable ADC
 	ADCSRA = (1 << ADEN);
 
-	// Select divider factor 8, so we get 1 MHz/8 = 125 kHz ADC clock
+	// Select divider factor 64, so we get 8 MHz/64 = 125 kHz ADC clock
 	ADCSRA |= (1<<ADPS2) | (1<<ADPS1);
 
 	// Use Vcc as voltage reference
