@@ -1,4 +1,7 @@
 /*
+ * WARNING: WORK IN PROGRESS.
+ * This code does not yet work as desired.
+ *
  * selectableColourLight.c
  *
  * Distributed under Creative Commons 3.0 -- Attib & Share Alike
