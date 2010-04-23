@@ -1,7 +1,4 @@
 /*
- * WARNING: WORK IN PROGRESS.
- * This code does not yet work as desired.
- *
  * selectableColourLight.c
  *
  * Distributed under Creative Commons 3.0 -- Attib & Share Alike
@@ -23,18 +20,21 @@
 //Hardware definitions
 #define RED_LED      PB2
 #define GREEN_LED    PB1
-#define BLUE_LED     PB0
+#define BLUE_LED     PB3
 #define ALL_LEDS    ((1 << RED_LED) | (1 << GREEN_LED) | (1 << BLUE_LED))
 
 #define POT_PIN PB4
 
-#define R_MAX 255
-#define G_MAX 255
-#define B_MAX 255
+#define R_MAX 235
+#define G_MAX 235
+#define B_MAX 235
 
 #define RED_INDEX   0
 #define GREEN_INDEX 1
 #define BLUE_INDEX  2
+
+#define SCALING_NUMERATOR 43
+#define SCALING_FACTOR 255/SCALING_NUMERATOR
 
 //set red to max (we start in the RedToYellow state)
 unsigned char mRgbBuffer[] = {0,0,0};
@@ -49,8 +49,7 @@ void initAdc()
 	// Select divider factor 64, so we get 8 MHz/64 = 125 kHz ADC clock
 	ADCSRA |= (1<<ADPS2) | (1<<ADPS1);
 
-	// Use Vcc as voltage reference
-	ADMUX |= (1 << REFS0);
+	// Use Vcc as voltage reference so leave REFS2:0 as 000
 
 	//we only need 8-bit precision.  Left adjust the ADC result
 	//so that we can read the ADCH register and be done with it.
@@ -95,7 +94,7 @@ uint8_t readAdc()
  * We scale the ADC input value as follows
  * ADC value < 43  = transition 1. (increase Green value)
  *           < 85  = 2. (decrease Red)
- *           < 117 = 3. (increase Bluse)
+ *           < 117 = 3. (increase Blue)
  *           < 159 = 4. (decrease Green)
  *           < 201 = 5. (increase Red)
  *           > 201 = 6. (decrease Blue)
@@ -107,34 +106,34 @@ uint8_t readAdc()
  */
 void setRgbLevels(uint8_t pValue)
 {
-	if(pValue < 43)
+	if(pValue < SCALING_NUMERATOR)
 	{
 		mRgbValues[RED_INDEX]   = 255;
-		mRgbValues[GREEN_INDEX] = pValue * 255/1;
+		mRgbValues[GREEN_INDEX] = pValue * SCALING_FACTOR;
 		mRgbValues[BLUE_INDEX]  = 0;
 
 	}
-	else if(pValue < 85)
+	else if(pValue < 86) //SCALING_NUMERATOR * 2
 	{
-		mRgbValues[RED_INDEX]   = 255 - (pValue * 255/2);
+		mRgbValues[RED_INDEX]   = 255 - ((pValue - SCALING_NUMERATOR) * SCALING_FACTOR);
 		mRgbValues[GREEN_INDEX] = 255;
 		mRgbValues[BLUE_INDEX]  = 0;
 	}
-	else if(pValue < 117)
+	else if(pValue < 129) //SCALING_NUMERATOR * 3
 	{
 		mRgbValues[RED_INDEX]   = 0;
 		mRgbValues[GREEN_INDEX] = 255;
-		mRgbValues[BLUE_INDEX]  = pValue * 255/3;
+		mRgbValues[BLUE_INDEX]  = (pValue - 86) * SCALING_FACTOR;
 	}
-	else if(pValue < 159)
+	else if(pValue < 172)//SCALING_NUMERATOR * 4
 	{
 		mRgbValues[RED_INDEX]   = 0;
-		mRgbValues[GREEN_INDEX] = 255 - (pValue * 255/4);
+		mRgbValues[GREEN_INDEX] = 255 - ((pValue - 129) * SCALING_FACTOR);
 		mRgbValues[BLUE_INDEX]  = 255;
 	}
-	else if(pValue < 201)
+	else if(pValue < 215)//SCALING_NUMERATOR * 5
 	{
-		mRgbValues[RED_INDEX]   = pValue * 255/5;
+		mRgbValues[RED_INDEX]   = (pValue - 172) * SCALING_FACTOR;
 		mRgbValues[GREEN_INDEX] = 0;
 		mRgbValues[BLUE_INDEX]  = 255;
 	}
@@ -142,7 +141,7 @@ void setRgbLevels(uint8_t pValue)
 	{
 		mRgbValues[RED_INDEX]   = 255;
 		mRgbValues[GREEN_INDEX] = 0;
-		mRgbValues[BLUE_INDEX]  = 255 - (pValue * 255/6);
+		mRgbValues[BLUE_INDEX]  = 255 - ((pValue - 215) * SCALING_FACTOR);
 	}
 }
 
@@ -156,23 +155,8 @@ int main(void)
 
 	initAdc();
 	init_timers();
-	uint8_t mValue = 1;
+	uint8_t mValue = 0;
 
-	for(mValue = 0; mValue < 3; mValue++)
-	{
-		mRgbValues[RED_INDEX]   = 255;
-		mRgbValues[GREEN_INDEX] = 0;
-		mRgbValues[BLUE_INDEX]  = 0;
-		_delay_ms(250);
-		mRgbValues[RED_INDEX]   = 0;
-		mRgbValues[GREEN_INDEX] = 255;
-		mRgbValues[BLUE_INDEX]  = 0;
-		_delay_ms(250);
-		mRgbValues[RED_INDEX]   = 0;
-		mRgbValues[GREEN_INDEX] = 0;
-		mRgbValues[BLUE_INDEX]  = 255;
-		_delay_ms(250);
-	}
 	for(;;)
 	{
 		mValue = readAdc();
@@ -189,11 +173,11 @@ int main(void)
 ISR(TIM0_OVF_vect)
 {
     //static variables maintain state from one call to the next
-    static unsigned char sPortBmask = ALL_LEDS;
+    static unsigned char sPortBmask = ~ALL_LEDS;
     static unsigned char sCounter = 255;
 
     //set port pins straight away (no waiting for processing)
-    PORTB = sPortBmask | (1 << POT_PIN);
+    PORTB = sPortBmask;
 
     //this counter will overflow back to 0 after reaching 255.
     //So we end up adjusting the LED states for every 256 interrupts/overflows.
