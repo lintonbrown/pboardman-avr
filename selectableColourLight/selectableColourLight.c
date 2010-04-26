@@ -19,8 +19,8 @@
 
 //Hardware definitions
 #define RED_LED      PB2
-#define GREEN_LED    PB1
-#define BLUE_LED     PB3
+#define GREEN_LED    PB0
+#define BLUE_LED     PB1
 #define ALL_LEDS    ((1 << RED_LED) | (1 << GREEN_LED) | (1 << BLUE_LED))
 
 #define POT_PIN PB4
@@ -33,8 +33,9 @@
 #define GREEN_INDEX 1
 #define BLUE_INDEX  2
 
-#define SCALING_NUMERATOR 43
-#define SCALING_FACTOR 255/SCALING_NUMERATOR
+//this is 256 (ADC max value)/6 (number of transitions)
+#define SCALING_RANGE 170
+#define SCALING_FACTOR 255/SCALING_RANGE
 
 //set red to max (we start in the RedToYellow state)
 unsigned char mRgbBuffer[] = {0,0,0};
@@ -53,7 +54,8 @@ void initAdc()
 
 	//we only need 8-bit precision.  Left adjust the ADC result
 	//so that we can read the ADCH register and be done with it.
-	ADMUX |= (1 << ADLAR);
+	//ADMUX |= (1 << ADLAR);
+	//actually, lets go wtih 10 bit precision fro 1024 colours (rather than 256)
 
 	// To select ADC2 we set ADMUX register bits MUX3..0=0010
 	ADMUX |= (1 << MUX1);
@@ -68,14 +70,14 @@ void init_timers()
     sei();
 }
 
-uint8_t readAdc()
+uint16_t readAdc()
 {
 	// Start ADC conversion
 	ADCSRA |= (1<<ADSC);
 
 	while(!(ADCSRA & (1 << ADIF)));
 
-	return(ADCH);
+	return(ADC);
 }
 
 /**
@@ -104,36 +106,36 @@ uint8_t readAdc()
  * ADC input * 255/n where 'n' is the transition number (1 - 6 above).
  * For decreasing values we use 255 - (ADC * 255/n) as the channel value.
  */
-void setRgbLevels(uint8_t pValue)
+void setRgbLevels(uint16_t pValue)
 {
-	if(pValue < SCALING_NUMERATOR)
+	if(pValue < SCALING_RANGE)
 	{
 		mRgbValues[RED_INDEX]   = 255;
 		mRgbValues[GREEN_INDEX] = pValue * SCALING_FACTOR;
 		mRgbValues[BLUE_INDEX]  = 0;
 
 	}
-	else if(pValue < 86) //SCALING_NUMERATOR * 2
+	else if(pValue < 342) //SCALING_RANGE * 2
 	{
-		mRgbValues[RED_INDEX]   = 255 - ((pValue - SCALING_NUMERATOR) * SCALING_FACTOR);
+		mRgbValues[RED_INDEX]   = 255 - ((pValue - SCALING_RANGE) * SCALING_FACTOR);
 		mRgbValues[GREEN_INDEX] = 255;
 		mRgbValues[BLUE_INDEX]  = 0;
 	}
-	else if(pValue < 129) //SCALING_NUMERATOR * 3
+	else if(pValue < 512) //SCALING_RANGE * 3
 	{
 		mRgbValues[RED_INDEX]   = 0;
 		mRgbValues[GREEN_INDEX] = 255;
-		mRgbValues[BLUE_INDEX]  = (pValue - 86) * SCALING_FACTOR;
+		mRgbValues[BLUE_INDEX]  = (pValue - 342) * SCALING_FACTOR;
 	}
-	else if(pValue < 172)//SCALING_NUMERATOR * 4
+	else if(pValue < 683)//SCALING_RANGE * 4
 	{
 		mRgbValues[RED_INDEX]   = 0;
-		mRgbValues[GREEN_INDEX] = 255 - ((pValue - 129) * SCALING_FACTOR);
+		mRgbValues[GREEN_INDEX] = 255 - ((pValue - 512) * SCALING_FACTOR);
 		mRgbValues[BLUE_INDEX]  = 255;
 	}
-	else if(pValue < 215)//SCALING_NUMERATOR * 5
+	else if(pValue < 854)//SCALING_RANGE * 5
 	{
-		mRgbValues[RED_INDEX]   = (pValue - 172) * SCALING_FACTOR;
+		mRgbValues[RED_INDEX]   = (pValue - 683) * SCALING_FACTOR;
 		mRgbValues[GREEN_INDEX] = 0;
 		mRgbValues[BLUE_INDEX]  = 255;
 	}
@@ -141,7 +143,7 @@ void setRgbLevels(uint8_t pValue)
 	{
 		mRgbValues[RED_INDEX]   = 255;
 		mRgbValues[GREEN_INDEX] = 0;
-		mRgbValues[BLUE_INDEX]  = 255 - ((pValue - 215) * SCALING_FACTOR);
+		mRgbValues[BLUE_INDEX]  = 255 - ((pValue - 854) * SCALING_FACTOR);
 	}
 }
 
@@ -155,7 +157,7 @@ int main(void)
 
 	initAdc();
 	init_timers();
-	uint8_t mValue = 0;
+	uint16_t mValue = 0;
 
 	for(;;)
 	{
