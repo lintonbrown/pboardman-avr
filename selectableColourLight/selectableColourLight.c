@@ -3,8 +3,8 @@
  *
  * Distributed under Creative Commons 3.0 -- Attib & Share Alike
  *
- * Based on the rgbLedNightLight project.  This code sets up a potentiometer as
- * input to the uC the value of which is used to select a colour.
+ * Based on the rgbLedNightLight project.  This code uses the value from a potentiometer
+ * to select a colour (RGB) to display.
  *
  *  Created on: Apr 11, 2010
  *      Author: Paul
@@ -33,7 +33,7 @@
 #define GREEN_INDEX 1
 #define BLUE_INDEX  2
 
-//this is 256 (ADC max value)/6 (number of transitions)
+//this is 1023 (10-bit ADC max value)/6 (number of transitions)
 #define SCALING_RANGE 170
 #define SCALING_FACTOR 255/SCALING_RANGE
 
@@ -55,7 +55,7 @@ void initAdc()
 	//we only need 8-bit precision.  Left adjust the ADC result
 	//so that we can read the ADCH register and be done with it.
 	//ADMUX |= (1 << ADLAR);
-	//actually, lets go wtih 10 bit precision fro 1024 colours (rather than 256)
+	//actually, lets go with 10 bit precision for 1024 colours (rather than 256)
 
 	// To select ADC2 we set ADMUX register bits MUX3..0=0010
 	ADMUX |= (1 << MUX1);
@@ -93,7 +93,11 @@ uint16_t readAdc()
  * The 8-bit input value has a max value of 255.  So, for the 6 transitions we have
  * 256/6 = 42.6 values to choose from.
  *
- * We scale the ADC input value as follows
+ * The 10-bit ADC has a max value of 1023.  So, for the 6 transitions we have
+ * 1023/6 = 170.5 values to choose from.
+ *
+ * For the 8-bit ADC values we scale the ADC input as follows:
+ *
  * ADC value < 43  = transition 1. (increase Green value)
  *           < 85  = 2. (decrease Red)
  *           < 117 = 3. (increase Blue)
@@ -103,8 +107,11 @@ uint16_t readAdc()
  *
  * Then the value for the increment/decremented channel is as follows:
  *
- * ADC input * 255/n where 'n' is the transition number (1 - 6 above).
- * For decreasing values we use 255 - (ADC * 255/n) as the channel value.
+ * For increasing colour values:
+ *   (ADC value - ((n - 1) * SCALING_RANGE)  * SCALING_FACTOR
+ *   where 'n' is the transition number (1 - 6, see above).
+ *
+ * For decreasing values we use 255 - the above value.
  */
 void setRgbLevels(uint16_t pValue)
 {
@@ -163,7 +170,7 @@ int main(void)
 	{
 		mValue = readAdc();
 		setRgbLevels(mValue);
-		_delay_ms(150);
+		_delay_ms(10);
 	}
 	return 0;
 }
