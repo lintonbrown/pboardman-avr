@@ -86,7 +86,7 @@ uint16_t readAdc()
  * 6. 255,  0,255 -> 1.
  *
  * The 10-bit ADC has a max value of 1023.  So, for the 6 transitions we have
- * 1023/6 = 170.5 values to choose from.
+ * 1024/6 = 170.6 values to choose from.
  *
  * We scale the ADC input as follows:
  *
