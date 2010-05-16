@@ -25,10 +25,6 @@
 
 #define POT_PIN PB4
 
-#define R_MAX 235
-#define G_MAX 235
-#define B_MAX 235
-
 #define RED_INDEX   0
 #define GREEN_INDEX 1
 #define BLUE_INDEX  2
@@ -37,17 +33,15 @@
 #define SCALING_RANGE 170
 #define SCALING_FACTOR 255/SCALING_RANGE
 
-//set red to max (we start in the RedToYellow state)
 unsigned char mRgbBuffer[] = {0,0,0};
 volatile unsigned char mRgbValues[] = {0,0,0};
-unsigned char mState;
 
 void initAdc()
 {
 	// Enable ADC
 	ADCSRA = (1 << ADEN);
 
-	// Select divider factor 64, so we get 8 MHz/64 = 125 kHz ADC clock
+	// Select division factor 64, so we get 8 MHz/64 = 125 kHz ADC clock
 	ADCSRA |= (1<<ADPS2) | (1<<ADPS1);
 
 	// Use Vcc as voltage reference so leave REFS2:0 as 000
@@ -75,9 +69,10 @@ uint16_t readAdc()
 	// Start ADC conversion
 	ADCSRA |= (1<<ADSC);
 
+	//wait for the conversion to complete
 	while(!(ADCSRA & (1 << ADIF)));
 
-	return(ADC);
+	return(ADC);//return the full 10-bit value
 }
 
 /**
@@ -90,20 +85,17 @@ uint16_t readAdc()
  * 5.   0,  0,255 ->
  * 6. 255,  0,255 -> 1.
  *
- * The 8-bit input value has a max value of 255.  So, for the 6 transitions we have
- * 256/6 = 42.6 values to choose from.
- *
  * The 10-bit ADC has a max value of 1023.  So, for the 6 transitions we have
  * 1023/6 = 170.5 values to choose from.
  *
- * For the 8-bit ADC values we scale the ADC input as follows:
+ * We scale the ADC input as follows:
  *
- * ADC value < 43  = transition 1. (increase Green value)
- *           < 85  = 2. (decrease Red)
- *           < 117 = 3. (increase Blue)
- *           < 159 = 4. (decrease Green)
- *           < 201 = 5. (increase Red)
- *           > 201 = 6. (decrease Blue)
+ * ADC value < 170  = transition 1. (increase Green value)
+ *           < 342  = 2. (decrease Red)
+ *           < 512 = 3. (increase Blue)
+ *           < 683 = 4. (decrease Green)
+ *           < 854 = 5. (increase Red)
+ *           >=854 = 6. (decrease Blue)
  *
  * Then the value for the increment/decremented channel is as follows:
  *
@@ -181,7 +173,7 @@ int main(void)
  */
 ISR(TIM0_OVF_vect)
 {
-    //static variables maintain state from one call to the next
+    //these static variables maintain state from one call to the next
     static unsigned char sPortBmask = ~ALL_LEDS;
     static unsigned char sCounter = 255;
 
