@@ -52,6 +52,7 @@ void init_timers()
 }
 
 void rgbCycle(){
+	switch (mState) {
 	case RedToYellow:
 		mRgbValues[GREEN_INDEX]++;
 		if (mRgbValues[GREEN_INDEX] == G_MAX)
