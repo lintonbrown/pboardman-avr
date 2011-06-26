@@ -35,9 +35,9 @@ int main(void)
   {
       PORTB = (1 << RED_LED);
       delay_seconds(RED_DELAY);
-      PORTB = (1 << YELLOW_LED);
-      delay_seconds(YELLOW_DELAY);
       PORTB = (1 << GREEN_LED);
       delay_seconds(GREEN_DELAY);
+      PORTB = (1 << YELLOW_LED);
+      delay_seconds(YELLOW_DELAY);
   }
 }
