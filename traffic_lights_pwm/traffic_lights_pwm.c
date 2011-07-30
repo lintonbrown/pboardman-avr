@@ -21,8 +21,8 @@
 
 //Hardware definitions
 #define RED_LED      PB2
-#define YELLOW_LED   PB4
-#define GREEN_LED    PB1
+#define YELLOW_LED   PB3
+#define GREEN_LED    PB4
 #define ALL_LEDS    ((1 << RED_LED) | (1 << GREEN_LED) | (1 << YELLOW_LED))
 
 //Maximum value for led brightness
