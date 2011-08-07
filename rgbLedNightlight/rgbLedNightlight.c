@@ -21,9 +21,9 @@
 #define ALL_LEDS    ((1 << RED_LED) | (1 << GREEN_LED) | (1 << BLUE_LED))
 
 //Maximum value for led brightness
-#define R_MAX 255
-#define G_MAX 255
-#define B_MAX 255
+#define R_MAX 150
+#define G_MAX 150
+#define B_MAX 150
 
 #define RED_INDEX   0
 #define GREEN_INDEX 1
@@ -39,12 +39,12 @@
 
 //set red to max (we start in the RedToYellow state)
 volatile unsigned char mRgbBuffer[] = {0,0,0};
-unsigned char mRgbValues[] = {255,0,0};
+unsigned char mRgbValues[] = {R_MAX,0,0};
 unsigned char mState;
 
 void init_timers()
 {
-    TIMSK0 = (1 << TOIE0);// enable overflow interrupt
+    TIMSK = (1 << TOIE0);// enable overflow interrupt
     TCCR0B = (1 << CS00); // start timer, no prescale
 
     //enable interrupts
@@ -105,7 +105,6 @@ int main(void){
 		if(mState == RedToYellow)
 		{
 			_delay_ms(250);
-			_delay_ms(250);
 		}
 	}
 	return 0;
@@ -132,12 +131,12 @@ ISR(TIM0_OVF_vect)
     	mRgbBuffer[GREEN_INDEX] = mRgbValues[GREEN_INDEX];
     	mRgbBuffer[BLUE_INDEX] = mRgbValues[BLUE_INDEX];
 
-        //set all pins to low (remember this is a common anode LED)
-        sPortBmask &=~ ALL_LEDS;
+        //set all pins to high (this is a common cathode LED)
+        sPortBmask = ALL_LEDS;
     }
     //this loop is considered for every overflow interrupt.
     //this is the software PWM.
-    if(mRgbBuffer[RED_INDEX]   == sCounter) sPortBmask |= (1 << RED_LED);
-    if(mRgbBuffer[GREEN_INDEX] == sCounter) sPortBmask |= (1 << GREEN_LED);
-    if(mRgbBuffer[BLUE_INDEX]  == sCounter) sPortBmask |= (1 << BLUE_LED);
+    if(mRgbBuffer[RED_INDEX]   == sCounter) sPortBmask &= ~(1 << RED_LED);
+    if(mRgbBuffer[GREEN_INDEX] == sCounter) sPortBmask &= ~(1 << GREEN_LED);
+    if(mRgbBuffer[BLUE_INDEX]  == sCounter) sPortBmask &= ~(1 << BLUE_LED);
 }
