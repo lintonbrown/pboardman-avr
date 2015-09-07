@@ -1,0 +1,1 @@
+A repository for some simple AVR code.  This will contain C code for the ATtiny13, ATtiny45 and ATmega8 (the chips I'm using at the moment).
